@@ -1,0 +1,918 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans:
+    "Inter", "Geist", "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  --font-dossier:
+    "Instrument Serif", "Songti SC", "STSong", "Noto Serif CJK SC", serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
+  --font-display: "Instrument Serif", "Songti SC", serif;
+}
+
+/*
+ * 楼道夜行 · 审讯档案
+ * 概念：混凝土楼道的野蛮主义 + 机密档案的文书感
+ * 浅色＝白昼巡检现场，深色＝凌晨审讯室
+ */
+:root {
+  --radius: 0.75rem;
+  color-scheme: light;
+
+  --background: oklch(0.975 0.005 85);
+  --foreground: oklch(0.2 0.015 265);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.015 265);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.015 265);
+  --primary: oklch(0.52 0.19 26);
+  --primary-foreground: oklch(0.985 0.01 30);
+  --secondary: oklch(0.74 0.13 78);
+  --secondary-foreground: oklch(0.2 0.015 70);
+  --muted: oklch(0.95 0.008 85);
+  --muted-foreground: oklch(0.48 0.02 260);
+  --accent: oklch(0.96 0.012 85);
+  --accent-foreground: oklch(0.24 0.015 260);
+  --destructive: oklch(0.54 0.22 25);
+  --destructive-foreground: oklch(0.99 0.01 20);
+  --border: oklch(0.89 0.01 260);
+  --input: oklch(0.89 0.01 260);
+  --ring: oklch(0.52 0.19 26);
+  --chart-1: oklch(0.52 0.19 26);
+  --chart-2: oklch(0.74 0.13 78);
+  --chart-3: oklch(0.52 0.12 260);
+  --chart-4: oklch(0.66 0.16 15);
+  --chart-5: oklch(0.55 0.1 300);
+  --sidebar: oklch(0.99 0.004 85);
+  --sidebar-foreground: oklch(0.2 0.015 260);
+  --sidebar-primary: oklch(0.52 0.19 26);
+  --sidebar-primary-foreground: oklch(0.99 0.01 30);
+  --sidebar-accent: oklch(0.95 0.012 85);
+  --sidebar-accent-foreground: oklch(0.24 0.015 260);
+  --sidebar-border: oklch(0.89 0.01 260);
+  --sidebar-ring: oklch(0.52 0.19 26);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --background: oklch(0.14 0.015 262);
+  --foreground: oklch(0.94 0.012 85);
+  --card: oklch(0.18 0.014 262);
+  --card-foreground: oklch(0.94 0.012 85);
+  --popover: oklch(0.2 0.015 262);
+  --popover-foreground: oklch(0.94 0.012 85);
+  --primary: oklch(0.64 0.185 27);
+  --primary-foreground: oklch(0.15 0.02 25);
+  --secondary: oklch(0.82 0.11 80);
+  --secondary-foreground: oklch(0.18 0.02 70);
+  --muted: oklch(0.23 0.012 262);
+  --muted-foreground: oklch(0.70 0.016 262);
+  --accent: oklch(0.25 0.013 262);
+  --accent-foreground: oklch(0.94 0.01 85);
+  --destructive: oklch(0.62 0.21 24);
+  --destructive-foreground: oklch(0.98 0.01 20);
+  --border: oklch(0.28 0.014 262);
+  --input: oklch(0.28 0.014 262);
+  --ring: oklch(0.64 0.185 27);
+  --chart-1: oklch(0.64 0.185 27);
+  --chart-2: oklch(0.82 0.11 80);
+  --chart-3: oklch(0.58 0.08 262);
+  --chart-4: oklch(0.73 0.14 15);
+  --chart-5: oklch(0.62 0.1 300);
+  --sidebar: oklch(0.18 0.014 262);
+  --sidebar-foreground: oklch(0.94 0.012 85);
+  --sidebar-primary: oklch(0.64 0.185 27);
+  --sidebar-primary-foreground: oklch(0.15 0.02 25);
+  --sidebar-accent: oklch(0.25 0.013 262);
+  --sidebar-accent-foreground: oklch(0.94 0.01 85);
+  --sidebar-border: oklch(0.28 0.014 262);
+  --sidebar-ring: oklch(0.64 0.185 27);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    font-feature-settings:
+      "ss01" on,
+      "ss02" on,
+      "cv01" on;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+  /* 背景保持干净，仅保留极淡的顶部光晕，避免干扰阅读 */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(60% 35% at 50% 0%, oklch(0.52 0.19 26 / 0.04), transparent 60%);
+    opacity: 0.6;
+  }
+  .dark body::before {
+    background: radial-gradient(60% 35% at 50% 0%, oklch(0.64 0.185 27 / 0.06), transparent 60%);
+  }
+
+  /* 更精致的滚动条 */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: var(--border);
+    border: 2px solid var(--background);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
+  }
+}
+
+@layer utilities {
+  .font-dossier {
+    font-family: var(--font-dossier);
+  }
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  /* 审讯灯光晕：克制，只在关键数字上 */
+  .text-glow {
+    text-shadow:
+      0 0 16px oklch(0.64 0.185 27 / 0.35),
+      0 0 36px oklch(0.64 0.185 27 / 0.16);
+  }
+  :root:not(.dark) .text-glow {
+    text-shadow:
+      0 0 12px oklch(0.52 0.19 26 / 0.28),
+      0 0 28px oklch(0.52 0.19 26 / 0.12);
+  }
+
+  /* 档案红章 */
+  .stamp {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.75px solid currentColor;
+    border-radius: 0.35rem;
+    padding: 0.18rem 0.5rem;
+    font-family: var(--font-dossier);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1.1;
+    color: var(--destructive);
+    opacity: 0.9;
+    transform: rotate(-4.5deg);
+    user-select: none;
+  }
+  .stamp::before {
+    content: "";
+    position: absolute;
+    inset: 2.5px;
+    border: 1px solid currentColor;
+    border-radius: 0.25rem;
+    opacity: 0.5;
+  }
+  .stamp-animate {
+    animation: stamp-in 0.55s cubic-bezier(0.18, 1.35, 0.42, 1) both;
+  }
+
+  /* 档案纸张肌理卡片 */
+  .paper {
+    position: relative;
+    background: var(--card);
+  }
+  .paper::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0.025;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='p'%3E%3CfeTurbulence baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23p)' opacity='0.4'/%3E%3C/svg%3E");
+  }
+
+  /* 野蛮主义描边卡 */
+  .brutal {
+    border: 1.25px solid var(--border);
+    box-shadow: 3px 3px 0 var(--border);
+  }
+  .dark .brutal {
+    box-shadow: 3px 3px 0 oklch(0.28 0.014 262);
+  }
+}
+
+/* 视图切换 — 更克制 */
+@keyframes view-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.view-enter {
+  animation: view-enter 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 任务卡入场 */
+@keyframes task-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.task-enter {
+  animation: task-enter 0.36s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 印章落下 */
+@keyframes stamp-in {
+  0% {
+    opacity: 0;
+    transform: rotate(-4.5deg) scale(1.8);
+  }
+  55% {
+    opacity: 1;
+    transform: rotate(-4.5deg) scale(0.94);
+  }
+  100% {
+    opacity: 0.9;
+    transform: rotate(-4.5deg) scale(1);
+  }
+}
+
+/* 楼梯呼吸 — 更慢更像警示灯 */
+@keyframes step-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--step-glow);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 18px 2px var(--step-glow);
+    opacity: 0.95;
+  }
+}
+:root:not(.dark) {
+  --step-glow: oklch(0.52 0.19 26 / 0.38);
+}
+.dark {
+  --step-glow: oklch(0.64 0.185 27 / 0.42);
+}
+.step-breathe {
+  animation: step-breathe 2.8s ease-in-out infinite;
+}
+
+/* 地狱加层：电梯厅门槛 + 封口热边，走到才点燃 */
+.stair-step-hell {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(90% 80% at 50% 120%, oklch(0.58 0.18 32 / 0.45), transparent 62%),
+    oklch(0.38 0.06 28);
+  border-color: oklch(0.55 0.12 32 / 0.62);
+}
+.stair-step-hell::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 62%;
+  background: radial-gradient(
+    80% 100% at 50% 110%,
+    oklch(0.64 0.18 36 / 0.42),
+    transparent 72%
+  );
+  pointer-events: none;
+}
+.dark .stair-step-hell {
+  background:
+    radial-gradient(90% 80% at 50% 120%, oklch(0.58 0.18 32 / 0.36), transparent 62%),
+    oklch(0.22 0.045 25 / 0.72);
+  border-color: oklch(0.62 0.16 32 / 0.5);
+}
+
+.stair-hell-col {
+  margin-left: 7px;
+}
+.stair-step-hell-gate {
+  position: relative;
+}
+.stair-step-hell-gate::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 14%;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    oklch(0.72 0.16 42 / 0.9) 40%,
+    oklch(0.58 0.18 28 / 0.6)
+  );
+  box-shadow: 0 0 7px oklch(0.64 0.18 32 / 0.5);
+  pointer-events: none;
+}
+
+.stair-step-hell.is-current {
+  background: oklch(0.34 0.13 28);
+  border-color: oklch(0.72 0.17 40 / 0.8);
+  box-shadow:
+    inset 0 1.5px 0 oklch(0.86 0.12 58 / 0.7),
+    0 0 12px oklch(0.58 0.17 32 / 0.38);
+  animation: hell-step-breathe 2.8s ease-in-out infinite;
+}
+.stair-step-hell.is-current::after {
+  height: 85%;
+  background: radial-gradient(
+    90% 100% at 50% 110%,
+    oklch(0.74 0.18 40 / 0.82),
+    transparent 70%
+  );
+}
+
+.stair-step-hell.is-lit {
+  background: oklch(0.26 0.07 25);
+  border-color: oklch(0.58 0.16 32 / 0.6);
+}
+.stair-step-hell.is-lit::after {
+  opacity: 0.55;
+}
+
+.stair-floor-label-hell {
+  background: oklch(0.20 0.05 25);
+  color: oklch(0.96 0.02 70);
+  box-shadow:
+    0 0 0 1px oklch(0.64 0.16 36 / 0.45),
+    0 0 10px oklch(0.55 0.16 28 / 0.28);
+}
+
+.stair-end-hell {
+  color: oklch(0.55 0.14 28);
+  letter-spacing: 0.02em;
+}
+.dark .stair-end-hell {
+  color: oklch(0.70 0.12 36);
+}
+
+@keyframes hell-step-breathe {
+  0%, 100% {
+    box-shadow:
+      inset 0 1.5px 0 oklch(0.86 0.12 58 / 0.55),
+      0 0 10px oklch(0.58 0.17 32 / 0.28);
+  }
+  50% {
+    box-shadow:
+      inset 0 1.5px 0 oklch(0.90 0.12 58 / 0.85),
+      0 0 18px oklch(0.64 0.18 36 / 0.48);
+  }
+}
+
+/* 进度条光泽扫过 */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* ──────────────────────────────────────────────
+ * 地狱模式
+ * 入口：烙印破封（选中瞬间灼入，只留热边与余烬）
+ * 页面：楼道底部炉火 + 纸页灼角 + 灰烬，慢、淡、不抢阅读
+ * ────────────────────────────────────────────── */
+
+.hell-ui {
+  transition: background-color 0.7s ease;
+}
+:root:not(.dark) .hell-ui {
+  background-color: oklch(0.955 0.014 48);
+}
+.dark .hell-ui {
+  background-color: oklch(0.125 0.022 25);
+}
+
+.hell-ambience {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.72s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hell-ambience.is-on {
+  opacity: 1;
+}
+.hell-ambience:not(.is-on) .hell-cinder,
+.hell-ambience:not(.is-on) .hell-heat,
+.hell-ambience:not(.is-on) .hell-haze,
+.hell-ambience:not(.is-on) .hell-vignette {
+  animation-play-state: paused;
+}
+
+/* 楼道地面向上的炉火，去掉品红杂色 */
+.hell-heat {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 52%;
+  background:
+    radial-gradient(78% 70% at 50% 112%, oklch(0.58 0.20 28 / 0.22), transparent 70%),
+    radial-gradient(48% 42% at 16% 100%, oklch(0.56 0.16 42 / 0.14), transparent 64%),
+    radial-gradient(46% 40% at 86% 100%, oklch(0.52 0.17 22 / 0.12), transparent 66%);
+  filter: blur(12px);
+  animation: hell-heat-breathe 6.4s ease-in-out infinite;
+}
+.dark .hell-heat {
+  background:
+    radial-gradient(78% 70% at 50% 112%, oklch(0.62 0.22 28 / 0.28), transparent 70%),
+    radial-gradient(48% 42% at 16% 100%, oklch(0.60 0.18 42 / 0.18), transparent 64%),
+    radial-gradient(46% 40% at 86% 100%, oklch(0.56 0.19 22 / 0.16), transparent 66%);
+}
+
+.hell-haze {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 30%;
+  background: linear-gradient(
+    to top,
+    oklch(0.50 0.14 32 / 0.10),
+    transparent 78%
+  );
+  filter: blur(22px);
+  transform-origin: 50% 100%;
+  animation: hell-haze-shift 9s ease-in-out infinite;
+}
+
+.hell-corners {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 42% 30% at 0% 0%, oklch(0.32 0.10 25 / 0.16), transparent 72%),
+    radial-gradient(ellipse 42% 30% at 100% 0%, oklch(0.32 0.10 25 / 0.13), transparent 72%),
+    radial-gradient(ellipse 55% 40% at 0% 100%, oklch(0.42 0.16 28 / 0.26), transparent 72%),
+    radial-gradient(ellipse 55% 40% at 100% 100%, oklch(0.42 0.16 28 / 0.22), transparent 72%);
+}
+.dark .hell-corners {
+  background:
+    radial-gradient(ellipse 42% 30% at 0% 0%, oklch(0.22 0.08 25 / 0.42), transparent 72%),
+    radial-gradient(ellipse 42% 30% at 100% 0%, oklch(0.22 0.08 25 / 0.36), transparent 72%),
+    radial-gradient(ellipse 55% 40% at 0% 100%, oklch(0.38 0.16 28 / 0.38), transparent 72%),
+    radial-gradient(ellipse 55% 40% at 100% 100%, oklch(0.38 0.16 28 / 0.32), transparent 72%);
+}
+
+.hell-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 90% at 50% 118%, oklch(0.14 0.03 25 / 0.42), transparent 58%),
+    linear-gradient(to bottom, oklch(0.16 0.02 25 / 0.16) 0%, transparent 16%);
+  animation: hell-vignette-breathe 8.5s ease-in-out infinite;
+}
+.dark .hell-vignette {
+  background:
+    radial-gradient(120% 90% at 50% 118%, oklch(0.10 0.03 25 / 0.62), transparent 58%),
+    linear-gradient(to bottom, oklch(0.10 0.02 25 / 0.28) 0%, transparent 18%);
+}
+
+.hell-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.034;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+.hell-embers {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.hell-cinder {
+  --rise: 60vh;
+  --sway: 8px;
+  position: absolute;
+  bottom: -10px;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle at 50% 50%,
+    oklch(0.86 0.13 55) 0%,
+    oklch(0.64 0.18 28) 55%,
+    transparent 74%
+  );
+  box-shadow:
+    0 0 5px oklch(0.70 0.18 32 / 0.9),
+    0 0 11px oklch(0.58 0.16 25 / 0.4);
+  opacity: 0;
+  filter: blur(0.3px);
+  animation-name: hell-cinder-rise;
+  animation-timing-function: cubic-bezier(0.22, 0.15, 0.35, 1);
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+.hell-cinder.is-ash {
+  border-radius: 2px 40% 30% 50%;
+  background: oklch(0.42 0.04 40 / 0.55);
+  box-shadow: 0 0 4px oklch(0.50 0.08 32 / 0.25);
+  filter: blur(0.6px);
+  animation-timing-function: linear;
+}
+
+@keyframes hell-cinder-rise {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.75);
+    opacity: 0;
+  }
+  8% { opacity: 0.9; }
+  55% {
+    transform: translate3d(calc(var(--sway) * 0.55), calc(var(--rise) * -0.5), 0) scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate3d(var(--sway), calc(var(--rise) * -1), 0) scale(0.55);
+    opacity: 0;
+  }
+}
+
+@keyframes hell-heat-breathe {
+  0%, 100% { opacity: 0.88; filter: blur(12px) brightness(1); }
+  50% { opacity: 1; filter: blur(14px) brightness(1.08); }
+}
+@keyframes hell-haze-shift {
+  0%, 100% { transform: translateX(-2.5%) scaleY(1); opacity: 0.7; }
+  50% { transform: translateX(2.5%) scaleY(1.1); opacity: 1; }
+}
+@keyframes hell-vignette-breathe {
+  0%, 100% { opacity: 0.92; }
+  50% { opacity: 1; }
+}
+
+/* ── 入口：烙印破封 ── */
+.hell-select-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition:
+    border-color 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.45s ease,
+    color 0.45s ease;
+}
+
+.hell-select-card[data-active="false"]:hover {
+  border-color: oklch(0.58 0.14 28 / 0.38) !important;
+  box-shadow: 0 2px 12px oklch(0.55 0.16 28 / 0.10);
+}
+
+.hell-select-card[data-active="true"] {
+  background: oklch(0.16 0.045 25);
+  color: oklch(0.97 0.014 80);
+  border-color: oklch(0.58 0.16 32 / 0.70);
+  box-shadow:
+    inset 0 1px 0 oklch(0.72 0.14 50 / 0.22),
+    inset 0 -18px 24px oklch(0.50 0.18 32 / 0.38),
+    0 0 0 1px oklch(0.62 0.16 36 / 0.18),
+    0 10px 26px oklch(0.48 0.16 25 / 0.28);
+  transform: translateY(-1px);
+}
+.dark .hell-select-card[data-active="true"] {
+  background: oklch(0.145 0.05 25);
+  border-color: oklch(0.62 0.18 32 / 0.62);
+}
+
+.hell-select-card[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    oklch(0.72 0.18 38) 22%,
+    oklch(0.86 0.14 58) 50%,
+    oklch(0.72 0.18 38) 78%,
+    transparent
+  );
+  box-shadow:
+    0 0 8px oklch(0.70 0.18 40 / 0.85),
+    0 0 16px oklch(0.58 0.16 28 / 0.4);
+  pointer-events: none;
+  animation: hell-seam-breathe 2.8s ease-in-out infinite;
+}
+
+.hell-card-scorch {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(100% 90% at 50% 120%, oklch(0.62 0.22 32 / 0.72), transparent 58%),
+    radial-gradient(36% 48% at 16% 0%, oklch(0.42 0.10 25 / 0.4), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+.hell-select-card[data-active="true"] .hell-card-scorch {
+  opacity: 1;
+  animation: hell-scorch-in 0.62s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hell-card-rim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px oklch(0.72 0.16 42 / 0);
+  transition: box-shadow 0.5s ease;
+}
+.hell-select-card[data-active="true"] .hell-card-rim {
+  box-shadow:
+    inset 0 0 0 1px oklch(0.74 0.16 48 / 0.42),
+    inset 0 -18px 20px oklch(0.52 0.18 28 / 0.22);
+  animation: hell-rim-breathe 3.8s ease-in-out infinite;
+}
+
+.hell-card-sparks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.hell-card-sparks span {
+  position: absolute;
+  bottom: 4px;
+  width: 3px;
+  height: 3px;
+  border-radius: 9999px;
+  background: oklch(0.92 0.12 62);
+  box-shadow:
+    0 0 6px oklch(0.78 0.16 48 / 1),
+    0 0 12px oklch(0.64 0.18 32 / 0.7);
+  opacity: 0;
+}
+.hell-select-card[data-active="true"] .hell-card-sparks span {
+  animation: hell-card-spark 2.6s ease-out infinite;
+}
+.hell-select-card[data-active="true"] .hell-card-sparks span:nth-child(2) {
+  animation-delay: 0.85s;
+  animation-duration: 3.1s;
+}
+.hell-select-card[data-active="true"] .hell-card-sparks span:nth-child(3) {
+  animation-delay: 1.55s;
+  animation-duration: 2.4s;
+}
+
+.hell-select-title {
+  position: relative;
+  z-index: 1;
+}
+.hell-select-card[data-active="true"] .hell-select-title {
+  letter-spacing: 0.06em;
+  text-shadow:
+    0 0 10px oklch(0.72 0.16 42 / 0.45),
+    0 0 24px oklch(0.58 0.18 28 / 0.28);
+  animation:
+    hell-title-brand 0.7s cubic-bezier(0.16, 1, 0.3, 1) both,
+    hell-title-heat 4.2s ease-in-out 0.7s infinite;
+}
+
+/* ── 开始：炉门 ── */
+.hell-start-btn[data-hell="true"] {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: oklch(0.40 0.18 26) !important;
+  color: oklch(0.99 0.01 80) !important;
+  border-color: oklch(0.62 0.18 36 / 0.62) !important;
+  box-shadow:
+    inset 0 1px 0 oklch(0.86 0.10 55 / 0.28),
+    inset 0 -14px 20px oklch(0.30 0.12 25 / 0.4),
+    0 8px 24px oklch(0.45 0.16 25 / 0.32);
+  transition:
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.28s ease,
+    filter 0.28s ease,
+    background-color 0.28s ease;
+}
+.hell-start-btn[data-hell="true"]::after {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 0;
+  height: 1.5px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    oklch(0.88 0.12 58 / 0.85) 50%,
+    transparent
+  );
+  box-shadow: 0 0 10px oklch(0.72 0.16 42 / 0.7);
+  pointer-events: none;
+  z-index: 1;
+}
+.hell-start-btn[data-hell="true"]:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow:
+    inset 0 1px 0 oklch(0.86 0.10 55 / 0.28),
+    inset 0 -14px 22px oklch(0.38 0.14 28 / 0.4),
+    0 12px 28px oklch(0.48 0.17 25 / 0.34);
+}
+.hell-start-btn[data-hell="true"]:active {
+  transform: translateY(0);
+  filter: brightness(0.97);
+}
+.hell-start-label {
+  position: relative;
+  z-index: 1;
+}
+
+.hell-btn-heat {
+  position: absolute;
+  inset: auto 0 -20% 0;
+  height: 85%;
+  pointer-events: none;
+  background: radial-gradient(
+    70% 90% at 50% 100%,
+    oklch(0.72 0.18 42 / 0.55),
+    transparent 68%
+  );
+  filter: blur(8px);
+  animation: hell-btn-heat-breathe 2.8s ease-in-out infinite;
+  z-index: 0;
+}
+.hell-start-btn[data-hell="true"]:hover .hell-btn-heat {
+  animation-duration: 1.6s;
+  opacity: 1;
+}
+
+.hell-btn-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes hell-scorch-in {
+  0% { opacity: 0; filter: brightness(1.8); }
+  45% { opacity: 1; filter: brightness(1.2); }
+  100% { opacity: 1; filter: brightness(1); }
+}
+@keyframes hell-rim-breathe {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 0 1px oklch(0.74 0.16 48 / 0.34),
+      inset 0 -16px 18px oklch(0.52 0.18 28 / 0.16);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px oklch(0.78 0.16 52 / 0.55),
+      inset 0 -20px 24px oklch(0.56 0.19 32 / 0.28);
+  }
+}
+@keyframes hell-card-spark {
+  0% { transform: translateY(0) scale(0.5); opacity: 0; }
+  14% { opacity: 1; }
+  100% { transform: translateY(-34px) scale(0.35); opacity: 0; }
+}
+@keyframes hell-title-brand {
+  0% {
+    letter-spacing: 0;
+    text-shadow: 0 0 0 transparent;
+    filter: brightness(1.7);
+  }
+  100% {
+    letter-spacing: 0.06em;
+    filter: brightness(1);
+  }
+}
+@keyframes hell-title-heat {
+  0%, 100% {
+    text-shadow:
+      0 0 10px oklch(0.72 0.16 42 / 0.38),
+      0 0 22px oklch(0.58 0.18 28 / 0.18);
+  }
+  50% {
+    text-shadow:
+      0 0 14px oklch(0.76 0.16 48 / 0.55),
+      0 0 30px oklch(0.60 0.18 28 / 0.28);
+  }
+}
+@keyframes hell-btn-heat-breathe {
+  0%, 100% { opacity: 0.72; transform: translateY(4px) scaleY(0.96); }
+  50% { opacity: 1; transform: translateY(0) scaleY(1.04); }
+}
+@keyframes hell-seam-breathe {
+  0%, 100% { opacity: 0.72; filter: brightness(1); }
+  50% { opacity: 1; filter: brightness(1.25); }
+}
+
+/* ── 衣物 3D 人台 · 悬浮与扫描 ── */
+@keyframes mannequin-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2.5px); }
+}
+.mannequin-float {
+  animation: mannequin-float 4.2s ease-in-out infinite;
+  will-change: transform;
+}
+@keyframes mannequin-scan {
+  0% { transform: translateY(-8%); opacity: 0; }
+  12% { opacity: 0.18; }
+  88% { opacity: 0.12; }
+  100% { transform: translateY(108%); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view-enter,
+  .task-enter,
+  .stamp-animate,
+  .step-breathe,
+  .hell-cinder,
+  .hell-heat,
+  .hell-haze,
+  .hell-vignette,
+  .hell-start-btn,
+  .hell-select-card,
+  .hell-card-scorch,
+  .hell-card-rim,
+  .hell-select-title,
+  .hell-card-sparks span,
+  .hell-btn-heat,
+  .mannequin-float {
+    animation: none !important;
+    transition: none !important;
+  }
+  .hell-select-card::after,
+  .hell-start-btn::after,
+  .hell-ambience,
+  .stair-step-hell.is-current {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="楼道暴露挑战">
+  <!-- 极简楼梯：与头部 IconStairs 同构，克制、无艳色 -->
+  <rect width="32" height="32" rx="7" fill="#0d0f16"/>
+  <!-- 三级台阶：1.8px 白色折线，圆角端点 -->
+  <path d="M9 23 H13.5 V18.5 H18 V14 H22.5 V9.5" fill="none" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" opacity="0.96"/>
+  <!-- 基线 -->
+  <path d="M9 23 H23" fill="none" stroke="white" stroke-width="1.7" stroke-linecap="round" opacity="0.96"/>
+</svg>

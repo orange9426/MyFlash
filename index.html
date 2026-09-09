@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f6f2ea" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0d0f16" />
+    <meta name="rating" content="adult" />
+    <meta name="RATING" content="RTA-5042-1996-1400-1570-RTA" />
+    <meta
+      name="description"
+      content="成人向文字模拟游戏，仅限年满 18 周岁。虚构内容，请遵守当地法律，切勿在公共场所实施。"
+    />
+    <title>MyFlash</title>
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("staircase-theme");
+          var t =
+            stored === "light" || stored === "dark"
+              ? stored
+              : window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
+          document.documentElement.classList.toggle("dark", t === "dark");
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <noscript>
+      本站为 18+ 成人向文字模拟，需要启用 JavaScript。虚构内容，请遵守当地法律，未成年人请离开。
+    </noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

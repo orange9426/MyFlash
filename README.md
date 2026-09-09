@@ -1,0 +1,63 @@
+# MyFlash
+
+楼道暴露挑战 — 基于网页的冒险游戏。玩家需要在楼道中向上攀爬，完成随机生成的挑战任务，管理积分和物品，最终根据得分达成不同的结局。
+
+部署后访问：`https://你的GitHub用户名.github.io/MyFlash/`。此地址需替换用户名，并完成下方部署步骤后才能使用。
+
+本项目基于 StaircaseTrial 修改，保留原有 GPL-3.0 许可证和作者信息。
+
+## 本版任务系统
+
+- 每局提供 2 次免费更换楼层任务的机会，不扣积分、不消耗道具、不推进进度。
+- 同阶段抽取不同任务，满足必需装备条件，优先避开全程计划中的其他任务。
+- 候选不足时允许使用计划中的任务，但不会抽回当前任务或本局被换掉的任务。
+- 上楼任务不参与更换。更换结果、已用次数自动保存；旧存档默认获得 2 次机会。
+- 原有任务文本、积分、商店和装备规则保持原样。
+
+## 手机调试
+
+电脑与手机连接同一个 Wi-Fi，执行 `npm run dev -- --host 0.0.0.0`。
+手机访问 `http://电脑的局域网IP:5173/MyFlash/`，端口以终端实际显示为准。
+电脑需保持运行，必要时允许 Node.js 通过 Windows 专用网络防火墙。
+
+## 功能特性
+
+- **爬楼机制**：从第 1 层开始，逐层向上挑战
+- **随机任务系统**：楼内任务与上楼任务交替推进
+- **积分系统**：根据任务完成情况、穿着状态等计算得分
+- **商店系统**：购买衣物和道具（跳过任务券、恢复内裤券）
+- **物品库存**：管理和使用购买的道具
+- **多结局判定**：根据最终得分决定不同的游戏结局
+- **本地存档**：自动保存游戏进度与历史记录（最多 10 条）
+- **响应式界面**：基于 shadcn/ui 的现代暗色主题 UI
+
+## 本地开发
+
+```bash
+npm install
+npm run dev
+```
+
+## 构建与预览
+
+```bash
+npm run build
+npm run preview
+```
+
+## 部署到 GitHub Pages
+
+项目已配置 Vite `base: '/MyFlash/'` 与 GitHub Actions 工作流。完整首次部署命令见 [DEPLOY.md](DEPLOY.md)。
+
+## 技术栈
+
+- [Vite](https://vite.dev/) + [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS v4](https://tailwindcss.com/)
+- [shadcn/ui](https://ui.shadcn.com/)
+- [Zustand](https://zustand.docs.pmnd.rs/)（状态管理）
+- [Sonner](https://sonner.emilkowal.ski/)（通知提示）
+- 浏览器 `localStorage`（存档）
+
+## 许可证
+
+GPL-3.0
