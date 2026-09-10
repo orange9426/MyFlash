@@ -4,6 +4,18 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ## Project Overview
 
+### Current route override (MyFlash)
+
+Current task configs now contain only `楼层任务` and `上楼任务` arrays; A/B/C classifications and phase counters have been removed. Zero-score ending draws use `楼层任务` too. Unused former H data is archived in `docs/archived-extra-tasks.json` and is not imported. Older references to A/B/C below are historical.
+
+Floor-task selection now merges A/B/C within the chosen persona and mode on every floor. Each floor has two distinct candidates in `taskChoices`; `chooseTask(id)` locks one into `currentTask` and clears the candidates. Completing or skipping the selected task counts as one floor step. `missionPlan.floorTasks` stores candidate pairs; climbing-task behavior is unchanged. Stage-bound A/B/C descriptions below are historical. C remains the source for the existing normal-mode zero-score ending draw.
+
+Task data now lives in `src/lib/game/tasks/{maleNormal,maleHell,femaleNormal,femaleHell}.ts`. Select pools with `getTasks(persona, mode)`; both parameters matter. See `docs/TASK_CONFIGURATION.md`. The old `tasks` and `tasksFemale` exports are normal-mode compatibility aliases; `tasksFemale.ts` retains female endings. Earlier file-location descriptions below are historical.
+
+Each task now colocates `description` and optional `needs: Partial<TaskNeeds>` in its object. There is no ID-based `TASK_NEEDS` table. Explicit needs override text inference; `{}` means no requirements. Shoes participate in full-body removal and sock-access hints, with explicit per-item wear requirements taking precedence. Text rewriting still has legacy ID/phrase rules in advisor.ts.
+
+The current implementation uses six consecutive floors in both modes: A on internal floors 1–2, B on 3–4, C on 5–6. Each floor has one task; each transition 1→2→3→4→5→6 has a one-floor climbing task. There are 11 progress steps (6 floor tasks + 5 climbs). Completing or skipping the final floor ends the game. The former floor-8 double task and extra hell floors are removed; older route descriptions below are historical. `routeVersion` changes reset the current run instead of migrating it. The starting-floor setting only offsets displayed floor numbers. Vite base is `/MyFlash/`.
+
 StaircaseTrial (楼道暴露挑战) is a web-based game where the player climbs a staircase completing randomly assigned challenges, manages points (积分) and clothing items, and reaches one of several endings based on final score. The entire UI and game content are in Chinese. It was migrated from a vanilla JS version (kept in `legacy/`) to React + TypeScript in v2.0.
 
 ## Commands

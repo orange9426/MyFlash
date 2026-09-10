@@ -16,10 +16,11 @@ export function loadGameStateFromStorage(): unknown | null {
   }
 }
 
-export function saveGameStateToStorage(state: unknown): void {
+export function saveGameStateToStorage(state: unknown, strict = false): void {
   try {
     localStorage.setItem(GAME_STATE_KEY, JSON.stringify(state));
   } catch {
+    if (strict) throw new Error("无法保存本局任务快照，请检查浏览器存储空间或权限后重试");
     // 忽略 quota / 私有模式等写入失败
   }
 }

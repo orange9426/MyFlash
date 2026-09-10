@@ -11,7 +11,7 @@ interface StairProgressProps {
 
 export function StairProgress({
   completed,
-  total = 10,
+  total = 6,
   startingFloor = 1,
   hellFloors,
   className,

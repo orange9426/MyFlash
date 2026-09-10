@@ -1,44 +1,49 @@
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { buildRunTaskPools, loadTaskPacks, type TaskSource } from "@/lib/game/customTasks";
 import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { createDefaultOwnedInventory } from "@/lib/game/constants";
-import { loadPersonaFromStorage, saveOwnedInventoryToStorage, savePersonaToStorage } from "@/lib/game/storage";
+import { loadPersonaFromStorage, savePersonaToStorage } from "@/lib/game/storage";
 import type { GameMode, OwnedInventory, Persona } from "@/lib/game/types";
 import { useGameStore } from "@/lib/game/store";
 import { cn } from "@/lib/utils";
 
 export function StartSection() {
+  const migrationMessage = useGameStore((s) => s.state.gamePhase === "initial" ? s.state.taskMessage : null);
   const startGame = useGameStore((s) => s.startGame);
   const setHellPreview = useGameStore((s) => s.setHellPreview);
   const [startingFloor, setStartingFloor] = useState(1);
+  const [source, setSource] = useState<TaskSource>("builtin");
+  const setView = useGameStore(s => s.setView);
   const [mode, setMode] = useState<GameMode>("normal");
   const [persona, setPersona] = useState<Persona>(() => loadPersonaFromStorage());
-  const [owned, setOwned] = useState<OwnedInventory>(() => createDefaultOwnedInventory());
+  const [owned] = useState<OwnedInventory>(() => createDefaultOwnedInventory());
 
   useEffect(() => {
     setHellPreview(mode === "hell");
     return () => setHellPreview(false);
   }, [mode, setHellPreview]);
 
-  const endFloor = startingFloor + (mode === "hell" ? 10 : 9);
+  const endFloor = startingFloor + 5;
+  let sourceError = "";
+  let taskCounts = "";
+  try {
+    const pools = buildRunTaskPools(persona, mode, source, source === "custom" ? loadTaskPacks() : []);
+    taskCounts = `楼层任务 ${pools.楼层任务.length} 项 · 上楼任务 ${pools.上楼任务.length} 项`;
+  } catch (error) { sourceError = error instanceof Error ? error.message : "无法读取任务包"; }
 
   const selectPersona = (next: Persona) => {
     setPersona(next);
     savePersonaToStorage(next);
   };
 
-  const toggleKneepads = () => {
-    setOwned((prev) => {
-      const next = { ...prev, 护膝: !prev.护膝 };
-      saveOwnedInventoryToStorage(next);
-      return next;
-    });
-  };
 
   return (
     <div className="space-y-6">
+      {migrationMessage && <p role="status" className="rounded-lg border p-3 text-sm">{migrationMessage}</p>}
       <h1 className="pt-2 text-[28px] font-semibold leading-[1.05] tracking-tight sm:pt-4 sm:text-[34px]">
         混凝土楼道里，
         <br />
@@ -64,16 +69,28 @@ export function StartSection() {
             <ChoiceCard
               selected={mode === "normal"}
               title="普通模式"
-              hint="10 步，到顶结算"
+              hint="6 层 · 每层任务二选一"
               onClick={() => setMode("normal")}
             />
             <ChoiceCard
               selected={mode === "hell"}
               variant="heat"
               title="地狱模式"
-              hint="12 步，电梯厅加罚"
+              hint="6 层 · 更高风险与加成"
               onClick={() => setMode("hell")}
             />
+          </div>
+
+          <div className="flex items-center justify-between gap-3 border-t pt-4">
+            <div className="w-full space-y-2">
+              <p className="text-sm font-medium">本局任务来源</p>
+              <div role="radiogroup" aria-label="任务来源" className="grid grid-cols-2 gap-2">
+                <ChoiceCard selected={source === "builtin"} title="仅内置" hint="使用游戏自带任务" onClick={() => setSource("builtin")} />
+                <ChoiceCard selected={source === "custom"} title="仅自定义" hint="使用匹配角色与难度的任务包" onClick={() => setSource("custom")} />
+              </div>
+              <p role="status" className="text-sm text-muted-foreground">{sourceError || taskCounts}</p>
+              <Button variant="outline" onClick={() => setView("taskEditor")}>管理自定义任务</Button>
+            </div>
           </div>
 
           <div className="flex items-center justify-between gap-3 border-t pt-4">
@@ -125,19 +142,6 @@ export function StartSection() {
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={toggleKneepads}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors",
-              owned.护膝
-                ? "border-foreground/30 bg-muted/50"
-                : "border-border text-muted-foreground hover:bg-muted/50",
-            )}
-          >
-            {owned.护膝 && <Check className="size-3.5" />}
-            我有护膝
-          </button>
 
           <Button
             size="lg"
@@ -146,7 +150,8 @@ export function StartSection() {
               "h-12 w-full text-base font-semibold",
               mode === "hell" && "hell-start-btn",
             )}
-            onClick={() => startGame(startingFloor, mode, owned, persona)}
+            disabled={!!sourceError}
+            onClick={() => { try { startGame(startingFloor, mode, owned, persona, source); } catch (error) { toast.error(error instanceof Error ? error.message : "开局失败"); } }}
           >
             {mode === "hell" && <span className="hell-btn-heat" aria-hidden="true" />}
             {mode === "hell" && <span className="hell-btn-grain" aria-hidden="true" />}

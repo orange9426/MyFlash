@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { useGameStore } from "@/lib/game/store";
+import { getTotalProgressSteps } from "@/lib/game/constants";
+import { clearGameStateStorage } from "@/lib/game/storage";
 
 interface DebugTerminalProps {
   visible: boolean;
@@ -19,14 +21,15 @@ export function DebugTerminal({ visible, logs, onClear, onClose, onCopy, onDeact
   const state = useGameStore((s) => s.state);
   const view = useGameStore((s) => s.view);
 
-  const total = state.mode === "hell" ? 12 : 10;
+  const total = getTotalProgressSteps(state.mode);
   const snapshot = {
     view,
     mode: state.mode,
     floor: state.currentFloor,
     displayFloor: state.currentFloor + state.startingFloor - 1,
     score: state.score,
-    phase: state.currentPhase,
+    phase: state.gamePhase,
+    choices: state.taskChoices.map(task => task.id),
     progress: `${state.progressStepsCompleted}/${total}`,
     clothing: state.clothing,
     inventory: state.inventory,
@@ -86,11 +89,11 @@ export function DebugTerminal({ visible, logs, onClear, onClose, onCopy, onDeact
                   size="sm"
                   className="h-7 text-xs"
                   onClick={() => {
-                    localStorage.clear();
+                    clearGameStateStorage();
                     location.reload();
                   }}
                 >
-                  清空存档并重载
+                  清除当前进度并重载
                 </Button>
               </div>
             </CardContent>

@@ -7,26 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGameStore } from "@/lib/game/store";
 
 const FLOW_NORMAL = [
-  "1 层任务 ×1（A）",
-  "2 层任务 ×1（A）",
-  "2→4 上楼",
-  "4 层任务 ×1（B）",
-  "5 层任务 ×1（B）",
-  "5→7 上楼",
-  "7 层任务 ×1（C）",
-  "8 层任务 ×2（C）",
-  "8→10 上楼",
-  "结算",
+  "从当前角色和难度的楼层任务池抽取",
+  "每层提供两个不同任务，任选其一",
+  "选定后完成或跳过；另一项不计分、不推进进度",
+  "每完成一层任务，上 1 层；共 5 次上楼",
+  "完成或跳过第 6 层任务后结算",
 ];
-
-const FLOW_HELL = [
-  "普通流程至 8 层",
-  "8→9 上楼（电梯厅外围）",
-  "9 层地狱任务 ×1",
-  "9→10 → 上楼至 11",
-  "11 层地狱任务 ×1",
-  "完成后结算",
-];
+const FLOW_HELL = FLOW_NORMAL;
 
 const ENDINGS_NORMAL = [
   { range: "≥40", text: "怎么射、在哪射都随你，也可以不射，完成后回家" },
@@ -91,7 +78,7 @@ export function RulesSection() {
             </TabsList>
 
             <TabsContent value="flow" className="mt-5 space-y-4">
-              <SectionTitle>普通流程（10 步）</SectionTitle>
+              <SectionTitle>普通流程（6 层 · 11 步）</SectionTitle>
               <p className="text-sm leading-relaxed text-muted-foreground">
                 开局选公狗或母狗、普通或地狱。母狗模式任务按女生改写（逼、揉、高潮），并含掰穴、勒缝、奶子贴墙等。流程与计分相同。
               </p>
@@ -117,20 +104,20 @@ export function RulesSection() {
                 <li>· 完成任务：基础分 + 暴露加成 + 尿液加成（如有）</li>
               </ul>
               <p className="rounded-lg border bg-muted/40 px-3 py-2 text-xs">
-                关键衣物 = 上衣 / 长裤 / 内裤 / 短袜。每少穿一件 +1；地狱额外 +1；风险加倍券使暴露加成 ×1.5。
+                关键衣物 = 上衣 / 长裤 / 内裤 / 短袜 / 鞋子。每少穿一件 +1；地狱额外 +1；风险加倍券使暴露加成 ×1.5。
               </p>
             </TabsContent>
 
             <TabsContent value="shop" className="mt-5 space-y-3">
               <SectionTitle>商店</SectionTitle>
               <p className="text-sm text-muted-foreground">
-                上衣、长裤、内裤、短袜默认都有。护膝在首页勾选。商店买的是出门穿着；没买的请放包里。准备出门时会给出携带清单。退货仅限商店阶段。
+                上衣、长裤、内裤、短袜和鞋子默认都有。商店买的是出门穿着；没买的请放包里。准备出门时会给出携带清单。退货仅限商店阶段。
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-lg border p-3 text-sm">
                   <p className="font-medium">衣物</p>
                   <p className="mt-1 text-muted-foreground">
-                    长裤 5 · 上衣 4 · 内裤 4 · 短袜 2 · 护膝 2
+                    长裤 5 · 上衣 4 · 内裤 4 · 短袜 2 · 鞋子 2
                   </p>
                 </div>
                 <div className="rounded-lg border p-3 text-sm">
@@ -146,7 +133,7 @@ export function RulesSection() {
               <SectionTitle>得分与剥夺衣物</SectionTitle>
               <p className="text-sm text-muted-foreground">
                 基础分 + 暴露 + 尿液加成。普通 50%（骰≤3）触发脱衣；地狱 / 风险加倍约 66%（骰≤4）。可用 5
-                分保留（电梯厅 8 分），或用延迟剥夺衣物券推迟到下一层。护膝不参与剥夺。无衣可脱时 -5 分并强制尿液标记。
+                分保留，或用延迟剥夺衣物券推迟到下一层。鞋子同样参与积分加成和随机移除。无衣可脱时 -5 分并强制尿液标记。
               </p>
               <Separator />
               <div className="grid grid-cols-2 gap-2 text-center text-xs sm:grid-cols-4">
@@ -165,9 +152,9 @@ export function RulesSection() {
             </TabsContent>
 
             <TabsContent value="hell" className="mt-5 space-y-4">
-              <SectionTitle>地狱模式（12 步）</SectionTitle>
+              <SectionTitle>地狱模式（6 层 · 11 步）</SectionTitle>
               <p className="text-sm text-muted-foreground">
-                开局选择地狱（初始 -3）。剥夺衣物概率升高，暴露加成 +1，电梯厅保留衣物 8 分。想改模式请回主页重选。
+                开局选择地狱（初始 -3）。剥夺衣物概率升高，暴露加成 +1，采用相同的六层路线。想改模式请回主页重选。
               </p>
               <ol className="grid gap-2 sm:grid-cols-2">
                 {FLOW_HELL.map((s, i) => (

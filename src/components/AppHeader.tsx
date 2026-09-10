@@ -39,19 +39,12 @@ export function AppHeader({ debugActive, onTitleClick }: AppHeaderProps) {
               </span>
             )}
           </button>
-          <a
-            href="https://x.com/dehaxer"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="truncate text-[11px] text-muted-foreground transition-colors hover:text-foreground sm:text-xs"
-          >
-            by 狐狸不会跳水
-          </a>
         </div>
 
         <div className="flex items-center gap-1">
           {/* 桌面端直接显示 */}
           <nav className="hidden items-center gap-1 sm:flex" aria-label="主导航">
+            <Button variant="ghost" size="sm" onClick={() => setView("taskEditor")}>任务编辑器</Button>
             <Button
               variant={view === "rules" ? "secondary" : "ghost"}
               size="sm"
@@ -89,6 +82,7 @@ export function AppHeader({ debugActive, onTitleClick }: AppHeaderProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem onClick={() => setView("taskEditor")}>任务编辑器</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setView("rules")}>
                   <BookOpenText className="size-4" /> 规则
                 </DropdownMenuItem>

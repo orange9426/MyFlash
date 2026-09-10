@@ -1,0 +1,1166 @@
+{
+  "maleNormal": [
+    {
+      "id": "H1",
+      "name": "电梯厅门口站立暴露",
+      "description": "电梯厅门外下半身全裸站着至少2分钟，随时可能有人出现",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "长裤": "off",
+          "内裤": "off"
+        },
+        "lowerBare": true
+      }
+    },
+    {
+      "id": "H2",
+      "name": "电梯按钮区边缘",
+      "description": "电梯按钮旁边边缘一次，鸡巴靠近按钮面板",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "长裤": "off",
+          "内裤": "off"
+        },
+        "lowerBare": true
+      }
+    },
+    {
+      "id": "H3",
+      "name": "电梯厅中央跪姿",
+      "description": "电梯厅正中央跪下全裸，坚持至少3分钟",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "kneeling": true
+      }
+    },
+    {
+      "id": "H5",
+      "name": "电梯厅排尿",
+      "description": "电梯厅角落或垃圾桶旁完整尿一次，并拍下来",
+      "baseScore": 5,
+      "urineBonus": 3,
+      "needs": {
+        "urine": true,
+        "photo": true
+      }
+    },
+    {
+      "id": "H6",
+      "name": "电梯厅多角度自拍",
+      "description": "拍到电梯厅环境，加上自己全裸，至少4张",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "photo": true
+      }
+    },
+    {
+      "id": "H7",
+      "name": "实时倒计时高危",
+      "description": "倒计时至少4分钟，期间电梯厅全裸并换姿势",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "photo": true
+      }
+    },
+    {
+      "id": "H8",
+      "name": "电梯厅狗姿巡视",
+      "description": "全裸狗姿在电梯厅缓慢移动一圈",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "kneeling": true
+      }
+    },
+    {
+      "id": "H10",
+      "name": "临时全脱冲刺",
+      "description": "衣物放在远处，全裸跑到电梯厅做完任务再取回",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H11",
+      "name": "电梯厅标记",
+      "description": "用尿液或前列腺液在电梯厅隐蔽处留下标记",
+      "baseScore": 4,
+      "urineBonus": 3,
+      "needs": {
+        "urine": true
+      }
+    },
+    {
+      "id": "H13",
+      "name": "电梯厅长时间守候",
+      "description": "选一个相对角落，全裸坚持至少5分钟",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H14",
+      "name": "按钮摩擦",
+      "description": "鸡巴轻轻摩擦电梯按钮面板（不实际按）",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "长裤": "off",
+          "内裤": "off"
+        },
+        "lowerBare": true
+      }
+    },
+    {
+      "id": "H15",
+      "name": "电梯厅寸止",
+      "description": "电梯厅强制寸止至少两次",
+      "baseScore": 5,
+      "needs": {}
+    },
+    {
+      "id": "H16",
+      "name": "电梯厅口塞",
+      "description": "嘴里塞着衣物，全裸在电梯厅跪下至少2分钟",
+      "baseScore": 4,
+      "needs": {
+        "requireAny": [
+          [
+            "内裤",
+            "短袜"
+          ]
+        ],
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "kneeling": true
+      }
+    },
+    {
+      "id": "H17",
+      "name": "电梯厅最终展示",
+      "description": "全裸勃起面向电梯门站着，直到自己主动停",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H18",
+      "name": "排尿后边缘",
+      "description": "电梯厅先尿出来，立刻进入边缘",
+      "baseScore": 5,
+      "urineBonus": 3,
+      "needs": {
+        "urine": true
+      }
+    },
+    {
+      "id": "H19",
+      "name": "多位置快速暴露",
+      "description": "电梯厅至少三个不同位置各停留至少20s全裸",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H20",
+      "name": "强制拍摄环境",
+      "description": "电梯厅监控摄像头方向也拍进照片",
+      "baseScore": 5,
+      "needs": {
+        "photo": true
+      }
+    },
+    {
+      "id": "H21",
+      "name": "缓慢脱衣仪式（电梯厅版）",
+      "description": "电梯厅用最慢速度脱光",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H22",
+      "name": "电梯厅爬行",
+      "description": "全裸爬行穿过电梯厅",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "kneeling": true
+      }
+    },
+    {
+      "id": "H24",
+      "name": "终极地狱",
+      "description": "全裸，尿出来，边缘，拍摄，全部在电梯厅连续做完",
+      "baseScore": 6,
+      "urineBonus": 3,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "urine": true,
+        "photo": true
+      }
+    }
+  ],
+  "maleHell": [
+    {
+      "id": "H1",
+      "name": "电梯厅门口站立暴露",
+      "description": "电梯厅门外下半身全裸站着至少2分钟，随时可能有人出现",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "长裤": "off",
+          "内裤": "off"
+        },
+        "lowerBare": true
+      }
+    },
+    {
+      "id": "H2",
+      "name": "电梯按钮区边缘",
+      "description": "电梯按钮旁边边缘一次，鸡巴靠近按钮面板",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "长裤": "off",
+          "内裤": "off"
+        },
+        "lowerBare": true
+      }
+    },
+    {
+      "id": "H3",
+      "name": "电梯厅中央跪姿",
+      "description": "电梯厅正中央跪下全裸，坚持至少3分钟",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "kneeling": true
+      }
+    },
+    {
+      "id": "H5",
+      "name": "电梯厅排尿",
+      "description": "电梯厅角落或垃圾桶旁完整尿一次，并拍下来",
+      "baseScore": 5,
+      "urineBonus": 3,
+      "needs": {
+        "urine": true,
+        "photo": true
+      }
+    },
+    {
+      "id": "H6",
+      "name": "电梯厅多角度自拍",
+      "description": "拍到电梯厅环境，加上自己全裸，至少4张",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "photo": true
+      }
+    },
+    {
+      "id": "H7",
+      "name": "实时倒计时高危",
+      "description": "倒计时至少4分钟，期间电梯厅全裸并换姿势",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "photo": true
+      }
+    },
+    {
+      "id": "H8",
+      "name": "电梯厅狗姿巡视",
+      "description": "全裸狗姿在电梯厅缓慢移动一圈",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "kneeling": true
+      }
+    },
+    {
+      "id": "H10",
+      "name": "临时全脱冲刺",
+      "description": "衣物放在远处，全裸跑到电梯厅做完任务再取回",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H11",
+      "name": "电梯厅标记",
+      "description": "用尿液或前列腺液在电梯厅隐蔽处留下标记",
+      "baseScore": 4,
+      "urineBonus": 3,
+      "needs": {
+        "urine": true
+      }
+    },
+    {
+      "id": "H13",
+      "name": "电梯厅长时间守候",
+      "description": "选一个相对角落，全裸坚持至少5分钟",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H14",
+      "name": "按钮摩擦",
+      "description": "鸡巴轻轻摩擦电梯按钮面板（不实际按）",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "长裤": "off",
+          "内裤": "off"
+        },
+        "lowerBare": true
+      }
+    },
+    {
+      "id": "H15",
+      "name": "电梯厅寸止",
+      "description": "电梯厅强制寸止至少两次",
+      "baseScore": 5,
+      "needs": {}
+    },
+    {
+      "id": "H16",
+      "name": "电梯厅口塞",
+      "description": "嘴里塞着衣物，全裸在电梯厅跪下至少2分钟",
+      "baseScore": 4,
+      "needs": {
+        "requireAny": [
+          [
+            "内裤",
+            "短袜"
+          ]
+        ],
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "kneeling": true
+      }
+    },
+    {
+      "id": "H17",
+      "name": "电梯厅最终展示",
+      "description": "全裸勃起面向电梯门站着，直到自己主动停",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H18",
+      "name": "排尿后边缘",
+      "description": "电梯厅先尿出来，立刻进入边缘",
+      "baseScore": 5,
+      "urineBonus": 3,
+      "needs": {
+        "urine": true
+      }
+    },
+    {
+      "id": "H19",
+      "name": "多位置快速暴露",
+      "description": "电梯厅至少三个不同位置各停留至少20s全裸",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H20",
+      "name": "强制拍摄环境",
+      "description": "电梯厅监控摄像头方向也拍进照片",
+      "baseScore": 5,
+      "needs": {
+        "photo": true
+      }
+    },
+    {
+      "id": "H21",
+      "name": "缓慢脱衣仪式（电梯厅版）",
+      "description": "电梯厅用最慢速度脱光",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H22",
+      "name": "电梯厅爬行",
+      "description": "全裸爬行穿过电梯厅",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "kneeling": true
+      }
+    },
+    {
+      "id": "H24",
+      "name": "终极地狱",
+      "description": "全裸，尿出来，边缘，拍摄，全部在电梯厅连续做完",
+      "baseScore": 6,
+      "urineBonus": 3,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "urine": true,
+        "photo": true
+      }
+    }
+  ],
+  "femaleNormal": [
+    {
+      "id": "H1",
+      "name": "电梯厅门口站立暴露",
+      "description": "电梯厅门外下半身全裸站着至少2分钟，随时可能有人出现",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "长裤": "off",
+          "内裤": "off"
+        },
+        "lowerBare": true
+      }
+    },
+    {
+      "id": "H2",
+      "name": "电梯按钮区边缘",
+      "description": "电梯按钮旁边边缘一次，逼靠近按钮面板",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "长裤": "off",
+          "内裤": "off"
+        },
+        "lowerBare": true
+      }
+    },
+    {
+      "id": "H3",
+      "name": "电梯厅中央跪姿",
+      "description": "电梯厅正中央跪下全裸，坚持至少3分钟",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "kneeling": true
+      }
+    },
+    {
+      "id": "H5",
+      "name": "电梯厅排尿",
+      "description": "电梯厅角落或垃圾桶旁完整尿一次，并拍下来",
+      "baseScore": 5,
+      "urineBonus": 3,
+      "needs": {
+        "urine": true,
+        "photo": true
+      }
+    },
+    {
+      "id": "H6",
+      "name": "电梯厅多角度自拍",
+      "description": "拍到电梯厅环境，加上自己全裸，至少4张",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "photo": true
+      }
+    },
+    {
+      "id": "H7",
+      "name": "实时倒计时高危",
+      "description": "倒计时至少4分钟，期间电梯厅全裸并换姿势",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "photo": true
+      }
+    },
+    {
+      "id": "H8",
+      "name": "电梯厅狗姿巡视",
+      "description": "全裸狗姿在电梯厅缓慢移动一圈",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "kneeling": true
+      }
+    },
+    {
+      "id": "H10",
+      "name": "临时全脱冲刺",
+      "description": "衣物放在远处，全裸跑到电梯厅做完任务再取回",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H11",
+      "name": "电梯厅标记",
+      "description": "用尿液或淫水在电梯厅隐蔽处留下标记",
+      "baseScore": 4,
+      "urineBonus": 3,
+      "needs": {
+        "urine": true
+      }
+    },
+    {
+      "id": "H13",
+      "name": "电梯厅长时间守候",
+      "description": "选一个相对角落，全裸坚持至少5分钟",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H14",
+      "name": "按钮摩擦",
+      "description": "逼轻轻摩擦电梯按钮面板（不实际按）",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "长裤": "off",
+          "内裤": "off"
+        },
+        "lowerBare": true
+      }
+    },
+    {
+      "id": "H15",
+      "name": "电梯厅寸止",
+      "description": "电梯厅强制寸止至少两次",
+      "baseScore": 5,
+      "needs": {}
+    },
+    {
+      "id": "H16",
+      "name": "电梯厅口塞",
+      "description": "嘴里塞着衣物，全裸在电梯厅跪下至少2分钟",
+      "baseScore": 4,
+      "needs": {
+        "requireAny": [
+          [
+            "内裤",
+            "短袜"
+          ]
+        ],
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "kneeling": true
+      }
+    },
+    {
+      "id": "H17",
+      "name": "电梯厅最终展示",
+      "description": "全裸掰开逼面向电梯门站着，直到自己主动停",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H18",
+      "name": "排尿后边缘",
+      "description": "电梯厅先尿出来，立刻进入边缘",
+      "baseScore": 5,
+      "urineBonus": 3,
+      "needs": {
+        "urine": true
+      }
+    },
+    {
+      "id": "H19",
+      "name": "多位置快速暴露",
+      "description": "电梯厅至少三个不同位置各停留至少20s全裸",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H20",
+      "name": "强制拍摄环境",
+      "description": "电梯厅监控摄像头方向也拍进照片",
+      "baseScore": 5,
+      "needs": {
+        "photo": true
+      }
+    },
+    {
+      "id": "H21",
+      "name": "缓慢脱衣仪式（电梯厅版）",
+      "description": "电梯厅用最慢速度脱光",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H22",
+      "name": "电梯厅爬行",
+      "description": "全裸爬行穿过电梯厅",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "kneeling": true
+      }
+    },
+    {
+      "id": "H24",
+      "name": "终极地狱",
+      "description": "全裸，尿出来，边缘，拍摄，全部在电梯厅连续做完",
+      "baseScore": 6,
+      "urineBonus": 3,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "urine": true,
+        "photo": true
+      }
+    },
+    {
+      "id": "H25",
+      "name": "电梯厅掰穴",
+      "description": "电梯厅正中央双手掰开逼至少1分钟并拍照",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "photo": true
+      }
+    }
+  ],
+  "femaleHell": [
+    {
+      "id": "H1",
+      "name": "电梯厅门口站立暴露",
+      "description": "电梯厅门外下半身全裸站着至少2分钟，随时可能有人出现",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "长裤": "off",
+          "内裤": "off"
+        },
+        "lowerBare": true
+      }
+    },
+    {
+      "id": "H2",
+      "name": "电梯按钮区边缘",
+      "description": "电梯按钮旁边边缘一次，逼靠近按钮面板",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "长裤": "off",
+          "内裤": "off"
+        },
+        "lowerBare": true
+      }
+    },
+    {
+      "id": "H3",
+      "name": "电梯厅中央跪姿",
+      "description": "电梯厅正中央跪下全裸，坚持至少3分钟",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "kneeling": true
+      }
+    },
+    {
+      "id": "H5",
+      "name": "电梯厅排尿",
+      "description": "电梯厅角落或垃圾桶旁完整尿一次，并拍下来",
+      "baseScore": 5,
+      "urineBonus": 3,
+      "needs": {
+        "urine": true,
+        "photo": true
+      }
+    },
+    {
+      "id": "H6",
+      "name": "电梯厅多角度自拍",
+      "description": "拍到电梯厅环境，加上自己全裸，至少4张",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "photo": true
+      }
+    },
+    {
+      "id": "H7",
+      "name": "实时倒计时高危",
+      "description": "倒计时至少4分钟，期间电梯厅全裸并换姿势",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "photo": true
+      }
+    },
+    {
+      "id": "H8",
+      "name": "电梯厅狗姿巡视",
+      "description": "全裸狗姿在电梯厅缓慢移动一圈",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "kneeling": true
+      }
+    },
+    {
+      "id": "H10",
+      "name": "临时全脱冲刺",
+      "description": "衣物放在远处，全裸跑到电梯厅做完任务再取回",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H11",
+      "name": "电梯厅标记",
+      "description": "用尿液或淫水在电梯厅隐蔽处留下标记",
+      "baseScore": 4,
+      "urineBonus": 3,
+      "needs": {
+        "urine": true
+      }
+    },
+    {
+      "id": "H13",
+      "name": "电梯厅长时间守候",
+      "description": "选一个相对角落，全裸坚持至少5分钟",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H14",
+      "name": "按钮摩擦",
+      "description": "逼轻轻摩擦电梯按钮面板（不实际按）",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "长裤": "off",
+          "内裤": "off"
+        },
+        "lowerBare": true
+      }
+    },
+    {
+      "id": "H15",
+      "name": "电梯厅寸止",
+      "description": "电梯厅强制寸止至少两次",
+      "baseScore": 5,
+      "needs": {}
+    },
+    {
+      "id": "H16",
+      "name": "电梯厅口塞",
+      "description": "嘴里塞着衣物，全裸在电梯厅跪下至少2分钟",
+      "baseScore": 4,
+      "needs": {
+        "requireAny": [
+          [
+            "内裤",
+            "短袜"
+          ]
+        ],
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "kneeling": true
+      }
+    },
+    {
+      "id": "H17",
+      "name": "电梯厅最终展示",
+      "description": "全裸掰开逼面向电梯门站着，直到自己主动停",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H18",
+      "name": "排尿后边缘",
+      "description": "电梯厅先尿出来，立刻进入边缘",
+      "baseScore": 5,
+      "urineBonus": 3,
+      "needs": {
+        "urine": true
+      }
+    },
+    {
+      "id": "H19",
+      "name": "多位置快速暴露",
+      "description": "电梯厅至少三个不同位置各停留至少20s全裸",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H20",
+      "name": "强制拍摄环境",
+      "description": "电梯厅监控摄像头方向也拍进照片",
+      "baseScore": 5,
+      "needs": {
+        "photo": true
+      }
+    },
+    {
+      "id": "H21",
+      "name": "缓慢脱衣仪式（电梯厅版）",
+      "description": "电梯厅用最慢速度脱光",
+      "baseScore": 4,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true
+      }
+    },
+    {
+      "id": "H22",
+      "name": "电梯厅爬行",
+      "description": "全裸爬行穿过电梯厅",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "kneeling": true
+      }
+    },
+    {
+      "id": "H24",
+      "name": "终极地狱",
+      "description": "全裸，尿出来，边缘，拍摄，全部在电梯厅连续做完",
+      "baseScore": 6,
+      "urineBonus": 3,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "urine": true,
+        "photo": true
+      }
+    },
+    {
+      "id": "H25",
+      "name": "电梯厅掰穴",
+      "description": "电梯厅正中央双手掰开逼至少1分钟并拍照",
+      "baseScore": 5,
+      "needs": {
+        "wear": {
+          "上衣": "off",
+          "长裤": "off",
+          "内裤": "off",
+          "短袜": "off"
+        },
+        "fullyBare": true,
+        "photo": true
+      }
+    }
+  ]
+}

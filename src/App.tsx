@@ -13,6 +13,7 @@ import { HistorySection } from "@/components/sections/HistorySection";
 import { RulesSection } from "@/components/sections/RulesSection";
 import { ShopSection } from "@/components/sections/ShopSection";
 import { StartSection } from "@/components/sections/StartSection";
+import { TaskEditorSection } from "@/components/sections/TaskEditorSection";
 import { useTheme } from "@/components/theme-provider";
 import { useDebugMode } from "@/hooks/useDebugMode";
 import { loadDisclaimerAck } from "@/lib/disclaimer";
@@ -68,6 +69,7 @@ function App() {
       <div className="relative z-10 mx-auto max-w-[720px] px-4 pb-10 pt-4 sm:px-6 sm:pt-6">
         <main key={view} className="view-enter">
           {view === "start" && <StartSection />}
+          {view === "taskEditor" && <TaskEditorSection />}
           {view === "rules" && <RulesSection />}
           {view === "disclaimer" && <DisclaimerSection />}
           {view === "shop" && <ShopSection />}

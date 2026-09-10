@@ -1,3 +1,4 @@
+import type { TaskPools } from "./tasks/schema";
 import {
   CLOTHING_ITEMS,
   createDefaultOwnedInventory,
@@ -7,6 +8,7 @@ import {
   getEnding,
   getEndings,
   getTasks,
+  getTaskFloors,
   sanitizeClothing,
   STRIPPABLE_CLOTHING_ITEMS,
 } from "./constants";
@@ -20,29 +22,11 @@ import type {
   OwnedItemId,
   Persona,
   Task,
+  TaskNeeds,
+  WearRole,
 } from "./types";
 
-export type WearRole =
-  | "on"
-  | "off"
-  | "mouth"
-  | "neck"
-  | "wrap"
-  | "rolled";
-
-export interface TaskNeeds {
-  requireAll: OwnedItemId[];
-  requireAny: OwnedItemId[][];
-  recommend: OwnedItemId[];
-  wear: Partial<Record<ClothingItem, WearRole>>;
-  lowerBare: boolean;
-  fullyBare: boolean;
-  kneeOnly: boolean;
-  kneeling: boolean;
-  urine: boolean;
-  photo: boolean;
-  sound: boolean;
-}
+export type { TaskNeeds, WearRole } from "./types";
 
 export interface OwnedItemDef {
   id: OwnedItemId;
@@ -82,22 +66,21 @@ export const OWNED_ITEM_DEFS: OwnedItemDef[] = [
     hint: "遮挡用，穿上会降低暴露加分",
   },
   {
-    id: "护膝",
-    name: "护膝",
+    id: "鞋子",
+    name: "鞋子",
     group: "wear",
     importance: "recommended",
-    hint: "跪爬任务很多，建议戴，但没有也能做",
+    hint: "保护双脚，可在商店选择穿着；不穿时计入积分加成，穿着时参与随机移除",
   },
 ];
 
 type NeedFlag =
   | "sock"
+  | "shoe"
   | "brief"
   | "brief|sock"
   | "pants"
   | "shirt"
-  | "knee"
-  | "knee!"
   | "lower"
   | "bare"
   | "kneel"
@@ -111,8 +94,7 @@ type NeedFlag =
   | "wrapSock"
   | "rollShirt"
   | "sockOn"
-  | "sockOff"
-  | "kneeOnly";
+  | "sockOff";
 
 function emptyNeeds(): TaskNeeds {
   return {
@@ -122,7 +104,6 @@ function emptyNeeds(): TaskNeeds {
     wear: {},
     lowerBare: false,
     fullyBare: false,
-    kneeOnly: false,
     kneeling: false,
     urine: false,
     photo: false,
@@ -138,6 +119,9 @@ function needs(...flags: NeedFlag[]): TaskNeeds {
   const n = emptyNeeds();
   for (const f of flags) {
     switch (f) {
+      case "shoe":
+        n.requireAll.push("鞋子");
+        break;
       case "sock":
         n.requireAll.push("短袜");
         break;
@@ -153,14 +137,6 @@ function needs(...flags: NeedFlag[]): TaskNeeds {
       case "shirt":
         n.recommend.push("上衣");
         break;
-      case "knee":
-        n.recommend.push("护膝");
-        break;
-      case "knee!":
-        n.requireAll.push("护膝");
-        n.recommend.push("护膝");
-        n.wear.护膝 = "on";
-        break;
       case "lower":
         n.lowerBare = true;
         n.wear.长裤 = "off";
@@ -175,7 +151,6 @@ function needs(...flags: NeedFlag[]): TaskNeeds {
         break;
       case "kneel":
         n.kneeling = true;
-        n.recommend.push("护膝");
         break;
       case "urine":
         n.urine = true;
@@ -215,15 +190,6 @@ function needs(...flags: NeedFlag[]): TaskNeeds {
       case "sockOff":
         n.wear.短袜 = "off";
         break;
-      case "kneeOnly":
-        n.kneeOnly = true;
-        n.requireAll.push("护膝");
-        n.wear.护膝 = "on";
-        n.wear.上衣 = "off";
-        n.wear.长裤 = "off";
-        n.wear.内裤 = "off";
-        n.wear.短袜 = "off";
-        break;
     }
   }
   n.requireAll = uniq(n.requireAll);
@@ -231,170 +197,12 @@ function needs(...flags: NeedFlag[]): TaskNeeds {
   return n;
 }
 
-const TASK_NEEDS: Record<string, TaskNeeds> = {
-  A1: needs("sock", "wrapSock"),
-  A2: needs(),
-  A3: needs("mouthBrief"),
-  A4: needs("wrapSock"),
-  A5: needs("rollShirt"),
-  A6: needs("kneel", "lower"),
-  A7: needs("lower"),
-  A8: needs("wrapSock"),
-  A9: needs("kneel"),
-  A11: needs("lower"),
-  A12: needs("lower"),
-  A13: needs("urine", "lower"),
-  A14: needs("sock", "urine"),
-  A15: needs("urine", "lower"),
-  A16: needs("urine", "kneel"),
-  A17: needs("sound"),
-  A18: needs("kneel", "sound"),
-  A19: needs(),
-  A20: needs("sound"),
-  A21: needs("mouthBrief"),
-  A22: needs("sock", "kneel"),
-  A23: needs("kneeOnly", "kneel"),
-  A24: needs("bare"),
-  A25: needs("photo", "kneel", "lower"),
-  A26: needs("photo"),
-  A27: needs("photo", "lower"),
-  A28: needs("photo", "sound"),
-  A29: needs("brief|sock"),
-  A30: needs(),
-  A31: needs("brief"),
-  A32: needs(),
-  A33: needs("rollShirt"),
-  A34: needs("brief"),
-  A35: needs("lower"),
-
-  B1: needs("brief", "kneel"),
-  B2: needs("lower"),
-  B3: needs("lower"),
-  B4: needs("brief", "lower"),
-  B5: needs("neckPants", "lower"),
-  B6: needs("lower", "kneel"),
-  B7: needs("lower"),
-  B8: needs("lower"),
-  B9: needs("lower"),
-  B10: needs("kneel", "lower"),
-  B11: needs("urine", "lower"),
-  B12: needs("urine"),
-  B13: needs("brief", "urine"),
-  B14: needs("urine"),
-  B16: needs("photo", "lower"),
-  B17: needs("brief", "photo"),
-  B19: needs("photo"),
-  B20: needs(),
-  B21: needs(),
-  B22: needs("rollShirt"),
-  B23: needs("mouthSock", "kneel"),
-  B24: needs("kneeOnly", "kneel"),
-  B25: needs("lower"),
-  B26: needs("lower"),
-  B27: needs("photo"),
-  B29: needs(),
-  B30: needs(),
-  B31: needs("sound"),
-  B32: needs("brief", "kneel", "lower"),
-  B34: needs(),
-  B35: needs("bare"),
-  B36: needs("lower"),
-  B37: needs("rollShirt"),
-  B38: needs("lower", "kneel"),
-
-  C1: needs("photo", "lower", "kneel"),
-  C2: needs("sockOn", "lower"),
-  C3: needs("kneel", "lower"),
-  C4: needs(),
-  C5: needs("sockOff"),
-  C6: needs("photo", "bare"),
-  C7: needs("bare", "kneel"),
-  C8: needs("lower"),
-  C9: needs("rollShirt", "lower"),
-  C10: needs("bare"),
-  C11: needs("urine", "photo", "lower"),
-  C12: needs("urine"),
-  C13: needs("urine"),
-  C14: needs("urine"),
-  C16: needs("photo", "urine", "bare"),
-  C17: needs("photo", "bare"),
-  C18: needs("sound"),
-  C20: needs(),
-  C21: needs(),
-  C22: needs("kneel"),
-  C23: needs("mouthAny", "lower", "kneel"),
-  C25: needs("urine"),
-  C26: needs("lower"),
-  C27: needs("lower"),
-  C28: needs("photo"),
-  C29: needs(),
-  C30: needs(),
-  C31: needs("sound"),
-  C32: needs("sockOn", "kneel", "lower"),
-  C33: needs("bare"),
-  C34: needs(),
-  C35: needs("bare"),
-  C36: needs("bare"),
-  C38: needs("urine"),
-  C39: needs("kneel"),
-  C40: needs("bare"),
-  C41: needs(),
-  C42: needs("kneel", "bare"),
-
-  U1: needs("sockOn", "kneel", "lower"),
-  U2: needs("kneel", "knee"),
-  U3: needs("mouthBrief", "lower"),
-  U4: needs("neckPants", "bare"),
-  U5: needs(),
-  U6: needs("sockOff", "lower"),
-  U7: needs("bare", "kneel"),
-  U8: needs("urine"),
-  U9: needs("mouthAny"),
-  U11: needs("urine"),
-  U12: needs("photo"),
-  U14: needs("sound"),
-  U15: needs("lower"),
-  U16: needs("bare"),
-  U17: needs("kneel"),
-  U18: needs(),
-  U19: needs("urine"),
-  U20: needs(),
-  U22: needs("wrapSock"),
-  U23: needs("rollShirt", "lower"),
-  U28: needs(),
-  U29: needs("bare"),
-  U30: needs(),
-  U31: needs("rollShirt"),
-
-  H1: needs("lower"),
-  H2: needs("lower"),
-  H3: needs("kneel", "bare"),
-  H5: needs("urine", "photo"),
-  H6: needs("photo", "bare"),
-  H7: needs("photo", "bare"),
-  H8: needs("kneel", "bare"),
-  H10: needs("bare"),
-  H11: needs("urine"),
-  H13: needs("bare"),
-  H14: needs("lower"),
-  H15: needs(),
-  H16: needs("mouthAny", "kneel", "bare"),
-  H17: needs("bare"),
-  H18: needs("urine"),
-  H19: needs("bare"),
-  H20: needs("photo"),
-  H21: needs("bare"),
-  H22: needs("kneel", "bare"),
-  H24: needs("urine", "photo", "bare"),
-  H25: needs("photo", "bare"),
-};
-
 function inferNeedsFromText(task: Task): NeedFlag[] {
   const text = `${task.name}${task.description}`;
   const flags: NeedFlag[] = [];
   if (/短袜/.test(text)) flags.push("sock");
+  if (/鞋子|鞋带/.test(text)) flags.push("shoe");
   if (/内裤/.test(text)) flags.push("brief");
-  if (/护膝/.test(text)) flags.push("knee");
   if (/跪|爬|狗姿/.test(text)) flags.push("kneel");
   if (/全裸/.test(text)) flags.push("bare");
   else if (/下半身|露逼|掰开逼|掰穴/.test(text)) flags.push("lower");
@@ -405,8 +213,23 @@ function inferNeedsFromText(task: Task): NeedFlag[] {
 }
 
 export function getTaskNeeds(task: Task): TaskNeeds {
-  const mapped = TASK_NEEDS[task.id];
-  const n = mapped ? { ...mapped, wear: { ...mapped.wear }, requireAll: [...mapped.requireAll], requireAny: mapped.requireAny.map((g) => [...g]), recommend: [...mapped.recommend] } : needs(...inferNeedsFromText(task));
+  const config = task.needs;
+  const n: TaskNeeds = config === undefined ? needs(...inferNeedsFromText(task)) : {
+    ...emptyNeeds(),
+    ...config,
+    wear: { ...config.wear },
+    requireAll: [...(config.requireAll ?? [])],
+    requireAny: (config.requireAny ?? []).map((group) => [...group]),
+    recommend: [...(config.recommend ?? [])],
+  };
+  // 兼容外部数据：faded 只允许用于长裤、内裤。
+  for (const item of CLOTHING_ITEMS) {
+    if (n.wear[item] === "faded" && item !== "长裤" && item !== "内裤") {
+      delete n.wear[item];
+    }
+  }
+  // 显式单件状态优先于整体状态。
+  if (n.fullyBare && n.wear.鞋子 === undefined) n.wear.鞋子 = "off";
   if ((task.urineBonus ?? 0) > 0) {
     n.urine = true;
   }
@@ -449,13 +272,27 @@ function pickBestTask(pool: Task[], owned: OwnedInventory, used: Set<string>): T
   return best[Math.floor(Math.random() * best.length)] ?? pool[0];
 }
 
+/** 两个候选不能同 ID；跨楼层优先避开已安排的候选。 */
+export function pickFloorTaskOptions(pool: Task[], owned: OwnedInventory, used = new Set<string>()): Task[] {
+  const unique = [...new Map(pool.map(task => [task.id, task])).values()];
+  const result: Task[] = [];
+  for (let i = 0; i < Math.min(2, unique.length); i++) {
+    const available = unique.filter(task => !result.some(picked => picked.id === task.id));
+    const task = pickBestTask(available, owned, used);
+    used.add(task.id);
+    result.push(task);
+  }
+  return result;
+}
+
 export function generateMissionPlan(
   mode: GameMode,
   owned: OwnedInventory,
   persona: Persona = "male",
+  snapshot?: TaskPools,
 ): MissionPlan {
   const used = new Set<string>();
-  const pools = getTasks(persona);
+  const pools = snapshot ?? getTasks(persona, mode);
   const pick = (pool: Task[], count: number): Task[] => {
     const result: Task[] = [];
     for (let i = 0; i < count; i++) {
@@ -466,40 +303,19 @@ export function generateMissionPlan(
     return result;
   };
 
-  const floorTasks: Record<number, Task[]> = {
-    1: pick(pools.A, 1),
-    2: pick(pools.A, 1),
-    4: pick(pools.B, 1),
-    5: pick(pools.B, 1),
-    7: pick(pools.C, 1),
-    8: pick(pools.C, 2),
-  };
+  const floorTasks: Record<number, Task[]> = {};
+  for (const floor of getTaskFloors(mode)) {
+    floorTasks[floor] = pickFloorTaskOptions(pools.楼层任务, owned, used);
+  }
 
   const climbingTasks: Record<number, Task> = {};
   for (const floor of getClimbingDecisionFloors(mode)) {
     climbingTasks[floor] = pick(pools["上楼任务"], 1)[0];
   }
 
-  if (mode === "hell") {
-    floorTasks[9] = pick(pools.H, 1);
-    floorTasks[11] = pick(pools.H, 1);
-  }
+
 
   return { floorTasks, climbingTasks };
-}
-
-export function getPlannedFloorTask(
-  plan: MissionPlan,
-  floor: number,
-  eighthFloorFirstTaskCompleted: boolean,
-): Task | null {
-  const list = plan.floorTasks[floor];
-  if (!list || list.length === 0) return null;
-  if (floor === 8) {
-    const index = eighthFloorFirstTaskCompleted ? 1 : 0;
-    return list[index] ?? list[0];
-  }
-  return list[0];
 }
 
 export function getPlannedClimbingTask(plan: MissionPlan, floor: number): Task | null {
@@ -533,7 +349,7 @@ export function buildItinerary(
         kind: "floor",
         internalFloor: floor,
         displayFloor: getDisplayFloor(floor, startingFloor),
-        phaseLabel: list.length > 1 ? `${phaseLabel} · ${i + 1}/${list.length}` : phaseLabel,
+        phaseLabel: list.length > 1 ? `${phaseLabel} · 候选 ${i + 1}/${list.length}` : phaseLabel,
         task,
         indexInFloor: i,
       });
@@ -554,19 +370,9 @@ export function buildItinerary(
     });
   };
 
-  pushFloor(1, "阶段 A");
-  pushFloor(2, "阶段 A");
-  if (climbFloors.includes(2)) pushClimb(2);
-  pushFloor(4, "阶段 B");
-  pushFloor(5, "阶段 B");
-  if (climbFloors.includes(5)) pushClimb(5);
-  pushFloor(7, "阶段 C");
-  pushFloor(8, "阶段 C");
-  if (climbFloors.includes(8)) pushClimb(8);
-  if (mode === "hell") {
-    pushFloor(9, "地狱");
-    if (climbFloors.includes(10)) pushClimb(10);
-    pushFloor(11, "地狱");
+  for (const floor of getTaskFloors(mode)) {
+    pushFloor(floor, "楼层任务");
+    if (climbFloors.includes(floor)) pushClimb(floor);
   }
   return steps;
 }
@@ -606,7 +412,6 @@ export function getPackingAdvice(
   const requiredCounts = new Map<OwnedItemId, number>();
   const recommendCounts = new Map<OwnedItemId, number>();
   let photoTasks = 0;
-  let kneelTasks = 0;
 
   const bump = (map: Map<OwnedItemId, number>, id: OwnedItemId) => {
     map.set(id, (map.get(id) ?? 0) + 1);
@@ -621,7 +426,6 @@ export function getPackingAdvice(
     }
     for (const id of n.recommend) bump(recommendCounts, id);
     if (n.photo) photoTasks += 1;
-    if (n.kneeling) kneelTasks += 1;
   }
 
   const wear: PackingItem[] = [];
@@ -676,9 +480,7 @@ export function getPackingAdvice(
   if (photoTasks > 0) {
     notes.push("出门前给手机充满电，并留足存储。");
   }
-  if (kneelTasks > 0 && owned.护膝) {
-    notes.push("护膝建议出门就戴上。");
-  }
+
   notes.push("没穿在身上的衣物请放包里。");
 
   return { wear, bag, missing, notes };
@@ -703,6 +505,7 @@ export function wearActionItems(advice: WearAdvice | null): WearInstruction[] {
 }
 
 export function wearActionLabel(item: WearInstruction): string {
+  if (item.verb === "褪到膝盖") return `${item.item}褪到膝盖`;
   if (item.tone === "missing") return item.verb;
   if (item.verb === "脱下" || item.verb === "穿上" || item.verb === "保持穿着" || item.verb === "保持不穿") {
     return `${item.verb}${item.item}`;
@@ -796,8 +599,8 @@ export function concretizeDescription(
     const seconds = pickOne([60, 90, 120]);
     const worn = STRIPPABLE_CLOTHING_ITEMS.filter((item) => clothing[item]);
     text = worn.length
-      ? `限时${seconds}s爬完两层。超时脱掉${pickOne(worn)}。`
-      : `限时${seconds}s爬完两层。超时罚跪30s。`;
+      ? `限时${seconds}s爬完一层。超时脱掉${pickOne(worn)}。`
+      : `限时${seconds}s爬完一层。超时罚跪30s。`;
   }
 
   text = text.replace(
@@ -879,12 +682,12 @@ export function concretizeTask<T extends Task>(
   };
 }
 
-function pickOwnedCTask(owned: OwnedInventory, persona: Persona = "male"): Task {
-  const poolC = getTasks(persona).C;
-  const feasible = poolC.filter(
+function pickOwnedFloorTask(owned: OwnedInventory, persona: Persona, mode: GameMode, snapshot?: TaskPools | null): Task {
+  const floorPool = (snapshot ?? getTasks(persona, mode)).楼层任务;
+  const feasible = floorPool.filter(
     (task) => missingRequiredItems(getTaskNeeds(task), owned).length === 0,
   );
-  const pool = feasible.length > 0 ? feasible : poolC;
+  const pool = feasible.length > 0 ? feasible : floorPool;
   return pickOne(pool);
 }
 
@@ -892,7 +695,7 @@ function pickOwnedCTask(owned: OwnedInventory, persona: Persona = "male"): Task 
 export function resolveEnding(state: GameState): string {
   const persona = state.persona === "female" ? "female" : "male";
   if (state.mode === "normal" && state.score <= 0) {
-    const extra = concretizeTask(pickOwnedCTask(state.owned, persona), state.clothing, state.owned);
+    const extra = concretizeTask(pickOwnedFloorTask(state.owned, persona, state.mode, state.runTaskPools), state.clothing, state.owned);
     const desc = resolveTaskDescription(extra.description, state.clothing);
     const follow =
       getEndings("normal", persona).find((ending) => ending.minScore === 1)?.description ??
@@ -911,10 +714,24 @@ const ROLE_VERB: Record<WearRole, { on: string; off: string; keepOn: string; kee
   neck: { on: "脱下挂在脖子上", off: "拿出挂在脖子上", keepOn: "脱下挂在脖子上", keepOff: "拿出挂在脖子上" },
   wrap: { on: "脱下作为道具", off: "拿出作为道具", keepOn: "脱下作为道具", keepOff: "拿出作为道具" },
   rolled: { on: "卷起到腋下", off: "没有上衣可跳过", keepOn: "上衣卷起到腋下", keepOff: "没有上衣可跳过" },
+  faded: { on: "褪到膝盖", off: "未穿可跳过", keepOn: "褪到膝盖", keepOff: "未穿可跳过" },
 };
 
 function roleOnBody(role: WearRole): boolean {
-  return role === "on" || role === "rolled";
+  return role === "on" || role === "rolled" || role === "faded";
+}
+
+/** 短袜操作需要接触脚部；显式鞋子状态可覆盖自动建议。 */
+function getWearNeeds(task: Task, clothing: Record<ClothingItem, boolean>): TaskNeeds {
+  const n = getTaskNeeds(task);
+  const sockRole = n.wear.短袜 ?? (n.fullyBare ? "off" : undefined);
+  const needsSockAccess = sockRole === "on"
+    ? !clothing.短袜
+    : sockRole !== undefined && sockRole !== "rolled" && clothing.短袜;
+  if (clothing.鞋子 && needsSockAccess && n.wear.鞋子 === undefined) {
+    n.wear.鞋子 = "off";
+  }
+  return n;
 }
 
 export function getTargetClothing(
@@ -924,39 +741,29 @@ export function getTargetClothing(
 ): Record<ClothingItem, boolean> {
   const next = sanitizeClothing(clothing);
   if (!task) return next;
-  const n = getTaskNeeds(task);
+  const n = getWearNeeds(task, clothing);
 
-  if (n.kneeOnly) {
-    for (const item of CLOTHING_ITEMS) next[item] = item === "护膝" && owned.护膝;
-    return next;
-  }
+
   if (n.fullyBare) {
-    next.上衣 = false;
-    next.长裤 = false;
-    next.内裤 = false;
-    next.短袜 = false;
+    for (const item of CLOTHING_ITEMS) next[item] = false;
   } else if (n.lowerBare) {
     next.长裤 = false;
     next.内裤 = false;
   }
 
   for (const [key, role] of Object.entries(n.wear) as [ClothingItem, WearRole][]) {
-    if (role === "rolled") {
+    if (role === "rolled" || role === "faded") {
       next[key] = clothing[key];
       continue;
     }
     if (roleOnBody(role)) {
-      next[key] = owned[key] !== false && (key === "护膝" ? owned.护膝 || clothing.护膝 : true);
-      if (key === "护膝") next.护膝 = owned.护膝 || clothing.护膝;
-      else if (role === "on") next[key] = owned[key] || clothing[key];
+      next[key] = owned[key] || clothing[key];
     } else {
       next[key] = false;
     }
   }
 
-  if (n.kneeling && (owned.护膝 || clothing.护膝)) {
-    next.护膝 = true;
-  }
+
   return next;
 }
 
@@ -967,7 +774,7 @@ export function getWearAdvice(
 ): WearAdvice | null {
   if (!task) return null;
   clothing = sanitizeClothing(clothing);
-  const n = getTaskNeeds(task);
+  const n = getWearNeeds(task, clothing);
   const target = getTargetClothing(task, clothing, owned);
   const items: WearInstruction[] = [];
   const extras: string[] = [];
@@ -988,7 +795,7 @@ export function getWearAdvice(
     let verb: string;
     if (role === "mouth" || role === "neck" || role === "wrap") {
       verb = currentlyOn ? verbs.on : verbs.off;
-    } else if (role === "rolled") {
+    } else if (role === "rolled" || role === "faded") {
       verb = currentlyOn ? verbs.keepOn : verbs.keepOff;
     } else if (role === "on") {
       verb = currentlyOn ? verbs.keepOn : verbs.keepOff;
@@ -998,7 +805,7 @@ export function getWearAdvice(
     let tone: WearInstruction["tone"];
     if (role === "mouth" || role === "neck" || role === "wrap") {
       tone = "prop";
-    } else if (role === "rolled") {
+    } else if (role === "rolled" || role === "faded") {
       tone = currentlyOn ? "action" : "keep";
     } else if (currentlyOn === roleOnBody(role)) {
       tone = "keep";
@@ -1012,20 +819,18 @@ export function getWearAdvice(
     });
   };
 
-  if (n.kneeOnly) {
-    pushWear("护膝", "on");
-    for (const item of ["上衣", "长裤", "内裤", "短袜"] as ClothingItem[]) {
-      if (clothing[item]) pushWear(item, "off");
-    }
-  } else {
+  {
     const seen = new Set<ClothingItem>();
-    for (const [key, role] of Object.entries(n.wear) as [ClothingItem, WearRole][]) {
+    const roles = Object.entries(n.wear) as [ClothingItem, WearRole][];
+    roles.sort(([left, leftRole], [right, rightRole]) =>
+      Number(right === "鞋子" && rightRole === "off") - Number(left === "鞋子" && leftRole === "off"));
+    for (const [key, role] of roles) {
       if (!CLOTHING_ITEMS.includes(key)) continue;
       seen.add(key);
       pushWear(key, role);
     }
     if (n.fullyBare) {
-      for (const item of ["上衣", "长裤", "内裤", "短袜"] as ClothingItem[]) {
+      for (const item of CLOTHING_ITEMS) {
         if (!seen.has(item)) pushWear(item, "off");
       }
     } else if (n.lowerBare) {
@@ -1033,10 +838,7 @@ export function getWearAdvice(
         if (!seen.has(item)) pushWear(item, "off");
       }
     }
-    if (n.kneeling && !seen.has("护膝")) {
-      if (owned.护膝 || clothing.护膝) pushWear("护膝", "on");
-      else extras.push("跪爬任务，没有护膝也行，注意护住膝盖。");
-    }
+
   }
 
   if (n.wear.内裤 === undefined && n.requireAny.some((g) => g.includes("内裤") && g.includes("短袜"))) {

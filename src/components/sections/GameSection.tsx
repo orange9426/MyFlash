@@ -1,7 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { getReplacementCandidates, MAX_TASK_REPLACEMENTS } from "@/lib/game/taskReplacement";
+import { MAX_TASK_REPLACEMENTS } from "@/lib/game/taskReplacement";
 import { StairProgress } from "@/components/StairProgress";
 import { WardrobeViewer } from "@/components/WardrobeFigurine";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { getWearAdvice, wearActionItems, wearActionLabel } from "@/lib/game/advi
 import { cn } from "@/lib/utils";
 import {
   getActiveTaskDisplay,
+  getTaskChoiceDisplays,
   getDisplayFloor,
   getGameControls,
   useGameStore,
@@ -25,6 +26,7 @@ import {
 export function GameSection() {
   const state = useGameStore((s) => s.state);
   const completeTask = useGameStore((s) => s.completeTask);
+  const chooseTask = useGameStore((s) => s.chooseTask);
   const nextFloor = useGameStore((s) => s.nextFloor);
   const assignClimbingTask = useGameStore((s) => s.assignClimbingTask);
   const confirmClimbing = useGameStore((s) => s.confirmClimbing);
@@ -39,6 +41,7 @@ export function GameSection() {
   }, [assignClimbingTask, state.currentFloor, state.currentTask, state.assignedClimbingTask, state.gamePhase]);
 
   const controls = getGameControls(state);
+  const choices = getTaskChoiceDisplays(state);
   const task = getActiveTaskDisplay(state);
   const displayFloor = getDisplayFloor(state.currentFloor, state.startingFloor);
   const totalFloors = getTotalFloors(state.mode);
@@ -55,7 +58,6 @@ export function GameSection() {
   const inv = state.inventory;
   const canSkip = inv.skip > 0 || state.score >= SKIP_TASK_COST;
   const replacementsLeft = Math.max(0, MAX_TASK_REPLACEMENTS - state.taskReplacementsUsed);
-  const canReplace = getReplacementCandidates(state).length > 0;
   const hasVoucherUi =
     inv.skip > 0 ||
     (inv.restore > 0 && !state.clothing["内裤"]) ||
@@ -110,6 +112,7 @@ export function GameSection() {
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-semibold tracking-tight">{displayFloor} 层</h1>
+            <span className="text-xs text-muted-foreground">第 {state.currentFloor}/6 层</span>
             {state.mode === "hell" && (
               <span className="rounded bg-foreground px-1.5 py-0.5 text-[10px] font-bold leading-none text-background">
                 地狱
@@ -161,7 +164,37 @@ export function GameSection() {
         </div>
       )}
 
-      {floorTask || climbing ? (
+      {choices.length > 0 ? (
+        <section className="space-y-3" aria-label="选择本层任务">
+          <h2 className="text-lg font-semibold">选择本层任务</h2>
+          <p className="text-sm text-muted-foreground">
+            {choices.length === 2 ? "二选一，选定后完成其中一项即可完成本层。" : "当前任务池仅有一个可用任务。"}
+          </p>
+          <p className="text-xs text-muted-foreground">本局免费刷新剩 {replacementsLeft} 次，两张卡共用；确认后不可刷新。</p>
+          {choices.map((choice, index) => (
+            <div key={choice.id} className="space-y-3 rounded-xl border bg-card p-4">
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="font-semibold">{index + 1}. {choice.name}</h3>
+                <span className="shrink-0 text-sm tabular-nums">+{choice.score} 分</span>
+              </div>
+              {choice.actions.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {choice.actions.map((label, i) => <span key={i} className="rounded-full border px-2 py-1 text-sm">{label}</span>)}
+                </div>
+              )}
+              <p className="text-sm leading-relaxed text-muted-foreground">{choice.description}</p>
+              <div className="grid grid-cols-2 gap-2">
+                <Button className="h-11" variant="outline" disabled={hasConfirm || !choice.canRefresh}
+                  onClick={() => { if (replaceTask(choice.id)) toast.success("已刷新此任务"); }}>
+                  刷新
+                </Button>
+                <Button className="h-11" disabled={hasConfirm} onClick={() => chooseTask(choice.id)}>确认</Button>
+              </div>
+              {!choice.canRefresh && replacementsLeft > 0 && <p className="text-xs text-muted-foreground">当前没有符合装备条件的其他任务可刷新。</p>}
+            </div>
+          ))}
+        </section>
+      ) : floorTask || climbing ? (
         <div key={floorTask?.id ?? climbing?.id} className="task-enter space-y-4">
           <div>
             <h2 className="text-lg font-semibold leading-tight sm:text-xl">{taskName}</h2>
@@ -186,22 +219,6 @@ export function GameSection() {
           </div>
 
           <div className="grid gap-2">
-            {!isClimbing && floorTask && (
-              <div className="space-y-1">
-                <Button variant="outline" className="h-11 w-full"
-                  disabled={hasConfirm || !canReplace}
-                  onClick={() => {
-                    if (replaceTask()) toast.success("已更换任务，积分与进度不变");
-                  }}>
-                  免费换一个（剩 {replacementsLeft} 次）
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  {replacementsLeft === 0 ? "本局免费更换次数已用完。"
-                    : !canReplace ? "当前没有符合装备条件的其他任务。"
-                    : "每局可更换两次楼层任务，优先避开本局其他任务；上楼任务不参与更换。"}
-                </p>
-              </div>
-            )}
             {controls.showCompleteTask && (
               <Button
                 size="lg"

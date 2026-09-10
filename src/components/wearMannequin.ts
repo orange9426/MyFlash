@@ -95,10 +95,6 @@ const aligned = (c: Vec3, r: Vec3): Pick<Volume, "c" | "r" | "axes"> => ({
   axes: { x: WORLD_X, y: WORLD_Y, z: WORLD_Z },
 });
 
-function ball(c: Vec3, radius: number): Pick<Volume, "c" | "r" | "axes"> {
-  return aligned(c, [radius, radius, radius]);
-}
-
 function capsule(a: Vec3, b: Vec3, radius: number): Pick<Volume, "c" | "r" | "axes"> {
   const d = sub(b, a);
   const half = hypot3(d) / 2;
@@ -276,9 +272,9 @@ export function buildMannequin(): MannequinModel {
       shell("sockR", "短袜", aligned([0.1, 0.03, 0.12], [0.04, 0.024, 0.1])),
       shell("sockL", "短袜", aligned([-0.1, 0.03, 0.18], [0.04, 0.024, 0.1])),
     ],
-    护膝: [
-      shell("kneeR", "护膝", ball(knR, 0.05)),
-      shell("kneeL", "护膝", ball(knL, 0.05)),
+    鞋子: [
+      shell("shoeR", "鞋子", aligned([0.1, 0.028, 0.13], [0.052, 0.035, 0.115])),
+      shell("shoeL", "鞋子", aligned([-0.1, 0.028, 0.19], [0.052, 0.035, 0.115])),
     ],
   };
 
@@ -288,7 +284,7 @@ export function buildMannequin(): MannequinModel {
     上衣: [0, 1.28, 0.14],
     内裤: [0, 0.9, 0.12],
     长裤: [0.12, 0.62, 0.07],
-    护膝: [0.11, 0.47, 0.04],
+    鞋子: [-0.1, 0.04, 0.22],
     短袜: [0.1, 0.04, 0.14],
   };
 
@@ -325,6 +321,7 @@ export function projectMannequin(
   const fitPts: Pt[] = [];
   const bodyParts: ProjectedPoly[] = [];
   for (const v of model.volumes) {
+    if (clothing.鞋子 && (v.id === "footR" || v.id === "footL")) continue;
     if (v.coveredBy && clothing[v.coveredBy]) continue;
     const fine = v.kind === "face";
     const points = hullOf(v, fine ? 5 : 8, fine ? 10 : 16);
@@ -334,6 +331,7 @@ export function projectMannequin(
 
   const wornParts: ProjectedPoly[] = [];
   (Object.keys(model.garments) as ClothingItem[]).forEach((key) => {
+    if (key === "短袜" && clothing.鞋子) return;
     const on = !!clothing[key];
     if (!on && !PERSISTENT_ITEMS.includes(key)) return;
     const kind: VolumeKind = on ? "worn" : "idle";

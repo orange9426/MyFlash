@@ -1,10 +1,14 @@
+import { buildRunTaskPools, loadTaskPacks, type TaskSource } from "./customTasks";
 import { create } from "zustand";
 import { getReplacementCandidates, MAX_TASK_REPLACEMENTS, replacePlannedTask } from "./taskReplacement";
 import {
   concretizeTask,
   generateMissionPlan,
   getPlannedClimbingTask,
-  getPlannedFloorTask,
+  pickFloorTaskOptions,
+  getWearAdvice,
+  wearActionItems,
+  wearActionLabel,
   normalizeMissionPlan,
   normalizeOwnedInventory,
   resolveEnding,
@@ -20,7 +24,6 @@ import {
   getKeepClothingCost,
   getNextFloorMap,
   getStripDiceThreshold,
-  getTaskFloors,
   getTaskPoolForFloor,
   getTotalFloors,
   getTotalProgressSteps,
@@ -68,14 +71,15 @@ interface GameStore {
   setHellPreview: (value: boolean) => void;
   setView: (view: AppView) => void;
   hydrate: () => void;
-  startGame: (startingFloor: number, mode?: GameMode, owned?: OwnedInventory, persona?: Persona) => void;
+  startGame: (startingFloor: number, mode?: GameMode, owned?: OwnedInventory, persona?: Persona, source?: TaskSource) => void;
   rerollShopScore: () => boolean;
   buyItem: (itemId: string, price: number) => boolean;
   returnItem: (itemId: string) => boolean;
   startAdventure: () => boolean;
   confirmDepart: () => boolean;
   completeTask: () => Promise<void>;
-  replaceTask: () => boolean;
+  replaceTask: (taskId: string) => boolean;
+  chooseTask: (taskId: string) => boolean;
   nextFloor: () => void;
   assignClimbingTask: () => void;
   confirmClimbing: () => void;
@@ -157,7 +161,10 @@ function normalizeLoadedState(raw: unknown): GameState {
     ...data,
     mode,
     selectedMode,
+    taskSource: data.taskSource === "custom" ? "custom" : "builtin",
+    runTaskPools: data.runTaskPools ?? structuredClone(getTasks(persona, mode)),
     persona,
+    routeVersion: data.routeVersion === 8 ? 8 : 1,
     score: clampScore(data.score, base.score),
     taskReplacementsUsed: Math.min(MAX_TASK_REPLACEMENTS, clampScore(data.taskReplacementsUsed, 0)),
     replacedTaskIds: Array.isArray(data.replacedTaskIds)
@@ -168,12 +175,6 @@ function normalizeLoadedState(raw: unknown): GameState {
     clothing: sanitizeClothing(data.clothing),
     inventory: inv,
     tasksCompleted: clampScore(data.tasksCompleted, 0),
-    tasksCompletedInPhase: {
-      A: clampScore(data.tasksCompletedInPhase?.A, 0),
-      B: clampScore(data.tasksCompletedInPhase?.B, 0),
-      C: clampScore(data.tasksCompletedInPhase?.C, 0),
-      H: clampScore(data.tasksCompletedInPhase?.H, 0),
-    },
     currentTask:
       data.currentTask && typeof data.currentTask === "object" && "id" in (data.currentTask as object)
         ? (data.currentTask as GameState["currentTask"])
@@ -183,15 +184,13 @@ function normalizeLoadedState(raw: unknown): GameState {
         ? (data.assignedClimbingTask as GameState["assignedClimbingTask"])
         : null,
     taskMessage: typeof data.taskMessage === "string" ? data.taskMessage : null,
+    taskChoices: !data.currentTask && !data.assignedClimbingTask && Array.isArray(data.taskChoices)
+      ? data.taskChoices.filter(task => task && typeof task.id === "string" && typeof task.description === "string").slice(0, 2)
+      : [],
     progressStepsCompleted: normalizedProgress,
     gamePhase: (["initial", "shop", "adventure", "ended"] as const).includes(inferredPhase as GameState["gamePhase"])
       ? (inferredPhase as GameState["gamePhase"])
       : base.gamePhase,
-    currentPhase:
-      typeof data.currentPhase === "string" && ["A", "B", "C", "H"].includes(data.currentPhase)
-        ? data.currentPhase
-        : base.currentPhase,
-    eighthFloorFirstTaskCompleted: !!data.eighthFloorFirstTaskCompleted,
     hasBoughtRestore: !!data.hasBoughtRestore,
     hasBoughtRiskDouble: !!data.hasBoughtRiskDouble || inv.riskDouble > 0 || !!data.riskDoubleActive,
     riskDoubleActive: !!data.riskDoubleActive,
@@ -228,19 +227,20 @@ function lockInFlavorText(state: GameState): GameState {
   return next;
 }
 
-function persist(state: GameState) {
+function persist(state: GameState, strict = false) {
   try {
-    saveGameStateToStorage({ ...state, clothing: sanitizeClothing(state.clothing) });
-  } catch {
+    saveGameStateToStorage({ ...state, clothing: sanitizeClothing(state.clothing) }, strict);
+  } catch (error) {
+    if (strict) throw error;
     // 忽略存储失败
   }
 }
 
 function generateNewTask(state: GameState): Partial<GameState> {
   const floor = state.currentFloor;
-  const taskInfo = getTaskPoolForFloor(floor, state.mode, state.persona);
+  const taskPool = getTaskPoolForFloor(floor, state.mode, state.persona) ? (state.runTaskPools ?? getTasks(state.persona, state.mode)).楼层任务 : null;
 
-  if (!taskInfo) {
+  if (!taskPool) {
     if (getClimbingDecisionFloors(state.mode).includes(floor)) {
       return applyClimbing(state);
     }
@@ -250,34 +250,14 @@ function generateNewTask(state: GameState): Partial<GameState> {
     };
   }
 
-  const planned = state.missionPlan
-    ? getPlannedFloorTask(state.missionPlan, floor, state.eighthFloorFirstTaskCompleted)
-    : null;
+  const planned = state.missionPlan?.floorTasks[floor];
   const assign = (task: NonNullable<GameState["currentTask"]>) =>
     concretizeTask(task, state.clothing, state.owned);
 
-  if (planned) {
-    return {
-      currentTask: assign(planned),
-      taskMessage: null,
-      currentPhase: taskInfo.phase,
-    };
-  }
-
-  if (floor === 8 && state.currentTask) {
-    const newTask = pickRandomTask(taskInfo.pool, state.currentTask.id);
-    return {
-      currentTask: assign(newTask),
-      taskMessage: null,
-      currentPhase: taskInfo.phase,
-    };
-  }
-
-  const newTask = pickRandomTask(taskInfo.pool);
   return {
-    currentTask: assign(newTask),
+    currentTask: null,
+    taskChoices: (planned?.length ? planned : pickFloorTaskOptions(taskPool, state.owned)).map(assign),
     taskMessage: null,
-    currentPhase: taskInfo.phase,
   };
 }
 
@@ -285,7 +265,7 @@ function applyClimbing(state: GameState): Pick<
   GameState,
   "assignedClimbingTask" | "currentTask" | "taskMessage"
 > {
-  const availableTasks = getTasks(state.persona)["上楼任务"];
+  const availableTasks = (state.runTaskPools ?? getTasks(state.persona, state.mode))["上楼任务"];
   const planned = state.missionPlan
     ? getPlannedClimbingTask(state.missionPlan, state.currentFloor)
     : null;
@@ -303,16 +283,13 @@ function applyClimbing(state: GameState): Pick<
 }
 
 function shouldAssignClimbing(state: GameState): boolean {
-  if (state.assignedClimbingTask || state.currentTask) return false;
-  if (state.currentFloor === 8 && !state.eighthFloorFirstTaskCompleted) return false;
+  if (state.assignedClimbingTask || state.currentTask || state.taskChoices.length > 0) return false;
+  if (state.gamePhase !== "adventure") return false;
   return getClimbingDecisionFloors(state.mode).includes(state.currentFloor);
 }
 
 function afterTaskCleared(state: GameState): GameState {
-  if (state.currentFloor === 8 && !state.eighthFloorFirstTaskCompleted) {
-    const marked = { ...state, eighthFloorFirstTaskCompleted: true };
-    return { ...marked, ...generateNewTask(marked) };
-  }
+  state = { ...state, progressStepsCompleted: state.progressStepsCompleted + 1 };
   if (shouldAssignClimbing(state)) {
     return { ...state, ...applyClimbing(state) };
   }
@@ -398,8 +375,8 @@ async function applyStripEvent(
   };
 }
 
-function isHellFinale(state: Pick<GameState, "mode" | "currentFloor">): boolean {
-  return state.mode === "hell" && state.currentFloor === 11;
+function isFinalFloor(state: Pick<GameState, "mode" | "currentFloor">): boolean {
+  return state.currentFloor === getTotalFloors(state.mode);
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -422,7 +399,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const loadedHistory = loadHistoryFromStorage();
 
     if (raw) {
-      const state = lockInFlavorText(normalizeLoadedState(raw));
+      const loaded = normalizeLoadedState(raw);
+      if (loaded.routeVersion !== 8) {
+        const fresh = createInitialGameState();
+        fresh.taskMessage = "任务配置已更新，请开始新游戏。";
+        persist(fresh);
+        set({ state: fresh, view: "start", history: loadedHistory });
+        return;
+      }
+      const state = lockInFlavorText(loaded);
       let view: AppView = "start";
       if (state.gamePhase === "ended") view = "end";
       else if (state.gamePhase === "adventure") view = "game";
@@ -450,7 +435,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ confirmRequest: null });
   },
 
-  startGame: (startingFloor, mode = "normal", owned, persona = "male") => {
+  startGame: (startingFloor, mode = "normal", owned, persona = "male", source = "builtin") => {
+    const runTaskPools = buildRunTaskPools(persona, mode, source, source === "custom" ? loadTaskPacks() : []);
     const floor = Math.max(1, Math.min(99, Math.floor(startingFloor) || 1));
     const ownedInventory = normalizeOwnedInventory(owned);
     saveOwnedInventoryToStorage(ownedInventory);
@@ -460,7 +446,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const withOwned: GameState = {
       ...initial,
       owned: ownedInventory,
-      missionPlan: generateMissionPlan(mode, ownedInventory, persona),
+      taskSource: source,
+      runTaskPools,
+      missionPlan: generateMissionPlan(mode, ownedInventory, persona, runTaskPools),
     };
     const state: GameState = {
       ...withOwned,
@@ -468,7 +456,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       clothing: { ...withOwned.clothing, 长裤: true },
       gamePhase: "shop" as const,
     };
-    persist(state);
+    persist(state, true);
     set({ state, view: "shop" });
   },
 
@@ -486,7 +474,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         长裤: true,
         内裤: false,
         短袜: false,
-        护膝: false,
+        鞋子: false,
       },
       inventory: emptyInventory(),
       hasBoughtRestore: false,
@@ -670,18 +658,29 @@ export const useGameStore = create<GameStore>((set, get) => ({
     return true;
   },
 
-  replaceTask: () => {
+  chooseTask: (taskId) => {
+    const { state, confirmRequest } = get();
+    if (confirmRequest || state.gamePhase !== "adventure" || state.currentTask || state.assignedClimbingTask) return false;
+    const selected = state.taskChoices.find(task => task.id === taskId);
+    if (!selected) return false;
+    const next: GameState = { ...state, currentTask: selected, taskChoices: [], taskMessage: null };
+    persist(next);
+    set({ state: next });
+    return true;
+  },
+
+  replaceTask: (taskId) => {
     const { state, confirmRequest } = get();
     if (confirmRequest) return false;
-    const candidates = getReplacementCandidates(state);
-    if (!state.currentTask || candidates.length === 0) return false;
+    const candidates = getReplacementCandidates(state, taskId);
+    if (candidates.length === 0) return false;
     const task = pickRandomTask(candidates);
     const next: GameState = {
       ...state,
-      currentTask: concretizeTask(task, state.clothing, state.owned),
-      missionPlan: replacePlannedTask(state, task),
+      taskChoices: state.taskChoices.map(choice => choice.id === taskId ? concretizeTask(task, state.clothing, state.owned) : choice),
+      missionPlan: replacePlannedTask(state, task, taskId),
       taskReplacementsUsed: state.taskReplacementsUsed + 1,
-      replacedTaskIds: [...state.replacedTaskIds, state.currentTask.id],
+      replacedTaskIds: [...state.replacedTaskIds, taskId],
       taskMessage: null,
     };
     persist(next);
@@ -695,30 +694,21 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (confirmRequest) return;
 
     const currentFloor = state.currentFloor;
-    const wasEighthFloorFirstTask =
-      currentFloor === 8 && !state.eighthFloorFirstTaskCompleted;
     const scoreGained = calculateTaskScore(state);
-    const phaseKey = state.currentPhase as keyof GameState["tasksCompletedInPhase"];
-    const isHellTask = state.currentPhase === "H";
 
     let next: GameState = {
       ...state,
       score: state.score + scoreGained,
       tasksCompleted: state.tasksCompleted + 1,
-      tasksCompletedInPhase: {
-        ...state.tasksCompletedInPhase,
-        [phaseKey]: (state.tasksCompletedInPhase[phaseKey] ?? 0) + 1,
-      },
       urineMarks:
         state.urineMarks +
         (state.currentTask.urineBonus && state.currentTask.urineBonus > 0 ? 1 : 0),
-      hellTasksCompleted: state.hellTasksCompleted + (isHellTask ? 1 : 0),
     };
 
-    const hellFinale = isHellFinale({ mode: next.mode, currentFloor });
+    const finalFloor = isFinalFloor({ mode: next.mode, currentFloor });
 
-    // 11 层完成后直接结算，不再投掷剥夺衣物
-    if (hellFinale) {
+    // 最后一层完成后直接结算。
+    if (finalFloor) {
       next = { ...next, pendingDelayedStrip: false };
     } else if (next.pendingDelayedStrip) {
       next = { ...next, pendingDelayedStrip: false };
@@ -733,47 +723,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     next.score = Math.max(0, next.score);
 
-    const taskFloors = getTaskFloors(next.mode);
-    if (taskFloors.includes(currentFloor)) {
-      if (currentFloor === 8) {
-        if (!state.eighthFloorFirstTaskCompleted) {
-          next = {
-            ...next,
-            progressStepsCompleted: next.progressStepsCompleted + 1,
-            eighthFloorFirstTaskCompleted: true,
-          };
-          const taskUpdates = generateNewTask(next);
-          next = { ...next, ...taskUpdates };
-          persist(next);
-          set({ state: next });
-          return;
-        }
-        next = {
-          ...next,
-          progressStepsCompleted: next.progressStepsCompleted + 1,
-          eighthFloorFirstTaskCompleted: false,
-        };
-      } else {
-        next = {
-          ...next,
-          progressStepsCompleted: next.progressStepsCompleted + 1,
-        };
-      }
-    }
+    next = { ...next, progressStepsCompleted: next.progressStepsCompleted + 1 };
 
-    if (wasEighthFloorFirstTask) {
-      persist(next);
-      set({ state: next });
-      return;
-    }
-
-    // 地狱：11 层 H 完成即结算，不再抬到 12、也不再脱衣
-    if (hellFinale) {
+    // 两种模式均完成第六层任务后结算。
+    if (finalFloor) {
       next = {
         ...next,
         progressStepsCompleted: Math.min(
           next.progressStepsCompleted,
-          getTotalProgressSteps("hell"),
+          getTotalProgressSteps(next.mode),
         ),
         currentTask: null,
         assignedClimbingTask: null,
@@ -782,7 +740,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       persist(next);
       set({ state: next });
       get().endGame(
-        `到达顶层 ${getDisplayFloor(11, next.startingFloor)}！游戏结束！`,
+        `到达顶层 ${getDisplayFloor(getTotalFloors(next.mode), next.startingFloor)}！游戏结束！`,
       );
       return;
     }
@@ -810,7 +768,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   nextFloor: () => {
     const { state, confirmRequest } = get();
     if (confirmRequest) return;
-    if (state.currentTask || state.assignedClimbingTask) return;
+    if (state.currentTask || state.assignedClimbingTask || state.taskChoices.length > 0) return;
     const nextFloorMap = getNextFloorMap(state.mode);
     const nextFloorValue = nextFloorMap[state.currentFloor];
     if (!nextFloorValue) return;
@@ -836,9 +794,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   confirmClimbing: () => {
-    const { state, endGame, confirmRequest } = get();
+    const { state, confirmRequest } = get();
     if (confirmRequest) return;
-    if (!state.assignedClimbingTask) return;
+    if (state.gamePhase !== "adventure" || !state.assignedClimbingTask) return;
     const previousFloor = state.currentFloor;
     const climbingFloors = getClimbingDecisionFloors(state.mode);
     if (!climbingFloors.includes(previousFloor)) {
@@ -847,7 +805,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     const targetMap = getClimbingTargetMap(state.mode);
     const nextFloorValue = targetMap[previousFloor];
-    const totalFloors = getTotalFloors(state.mode);
 
     // 上楼任务若含 urineBonus 也计标记
     const climbUrine =
@@ -856,28 +813,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
         ? 1
         : 0;
 
-    // 地狱 10→11 的上楼不占用进度步（12 步分配给：7 楼内 + 8a/8b + 3 段爬中的前 3 段含 8→9 + 9H + 11H）
-    const skipProgress = state.mode === "hell" && previousFloor === 10;
     const next: GameState = {
       ...state,
-      progressStepsCompleted: skipProgress
-        ? state.progressStepsCompleted
-        : state.progressStepsCompleted + 1,
+      progressStepsCompleted: state.progressStepsCompleted + 1,
       currentFloor: nextFloorValue,
       maxFloor: Math.max(state.maxFloor, nextFloorValue),
       assignedClimbingTask: null,
       urineMarks: state.urineMarks + climbUrine,
     };
-
-    // 普通：爬到 10 结算
-    if (next.mode === "normal" && next.currentFloor >= totalFloors) {
-      persist(next);
-      set({ state: next });
-      endGame(
-        `到达顶层 ${getDisplayFloor(totalFloors, next.startingFloor)}！游戏结束！`,
-      );
-      return;
-    }
 
     const landed: GameState = {
       ...next,
@@ -904,9 +847,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       });
       persist(next);
       set({ state: next });
-      if (isHellFinale(next)) {
+      if (isFinalFloor(next)) {
         get().endGame(
-          `到达顶层 ${getDisplayFloor(11, next.startingFloor)}！游戏结束！`,
+          `到达顶层 ${getDisplayFloor(getTotalFloors(next.mode), next.startingFloor)}！游戏结束！`,
         );
       }
       return;
@@ -924,9 +867,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       });
       persist(next);
       set({ state: next });
-      if (isHellFinale(next)) {
+      if (isFinalFloor(next)) {
         get().endGame(
-          `到达顶层 ${getDisplayFloor(11, next.startingFloor)}！游戏结束！`,
+          `到达顶层 ${getDisplayFloor(getTotalFloors(next.mode), next.startingFloor)}！游戏结束！`,
         );
       }
       return;
@@ -1051,6 +994,18 @@ export function getActiveTaskDisplay(state: GameState) {
     return { name: state.taskMessage, description: null };
   }
   return { name: "暂无任务", description: null };
+}
+
+export function getTaskChoiceDisplays(state: GameState) {
+  if (state.gamePhase !== "adventure" || state.currentTask || state.assignedClimbingTask) return [];
+  return state.taskChoices.map(task => ({
+    id: task.id,
+    canRefresh: getReplacementCandidates(state, task.id).length > 0,
+    name: task.name,
+    description: resolveTaskDescription(task.description, state.clothing),
+    score: calculateTaskScore({ ...state, currentTask: task }),
+    actions: wearActionItems(getWearAdvice(task, state.clothing, state.owned)).map(wearActionLabel),
+  }));
 }
 
 export {

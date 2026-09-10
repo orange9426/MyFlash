@@ -1,3 +1,5 @@
+import type { TaskPools } from "./tasks/schema";
+import type { TaskSource } from "./customTasks";
 export type GamePhase = "initial" | "shop" | "adventure" | "ended";
 
 export type GameMode = "normal" | "hell";
@@ -10,7 +12,7 @@ export type ClothingItem =
   | "长裤"
   | "内裤"
   | "短袜"
-  | "护膝";
+  | "鞋子";
 
 export type AppView =
   | "start"
@@ -20,7 +22,8 @@ export type AppView =
   | "briefing"
   | "game"
   | "end"
-  | "history";
+  | "history"
+  | "taskEditor";
 
 export type OwnedItemId = ClothingItem;
 
@@ -32,11 +35,41 @@ export type ItemImportance =
   | "recommended"
   | "optional";
 
+export type WearRole =
+  | "on"
+  | "off"
+  | "mouth"
+  | "neck"
+  | "wrap"
+  | "rolled"
+  | "faded";
+
+export type TaskWear = {
+  [Item in ClothingItem]?: Item extends "长裤" | "内裤"
+    ? WearRole
+    : Exclude<WearRole, "faded">;
+};
+
+export interface TaskNeeds {
+  requireAll: OwnedItemId[];
+  requireAny: OwnedItemId[][];
+  recommend: OwnedItemId[];
+  wear: TaskWear;
+  lowerBare: boolean;
+  fullyBare: boolean;
+  kneeling: boolean;
+  urine: boolean;
+  photo: boolean;
+  sound: boolean;
+}
+
 export interface Task {
   id: string;
   name: string;
   description: string;
   baseScore: number;
+  /** 显式需求优先；省略时兼容从文本推断，空对象表示无要求。 */
+  needs?: Partial<TaskNeeds>;
   /** 任务涉及排尿/标记时的额外加分 1–3 */
   urineBonus?: number;
 }
@@ -58,6 +91,9 @@ export interface Inventory {
 }
 
 export interface GameState {
+  routeVersion: number;
+  taskSource: TaskSource;
+  runTaskPools: TaskPools | null;
   score: number;
   currentFloor: number;
   maxFloor: number;
@@ -70,13 +106,12 @@ export interface GameState {
   persona: Persona;
   clothing: Record<ClothingItem, boolean>;
   currentTask: Task | null;
+  /** 当前楼层待选择的任务，选择后清空。 */
+  taskChoices: Task[];
   taskMessage: string | null;
   tasksCompleted: number;
-  tasksCompletedInPhase: { A: number; B: number; C: number; H: number };
-  currentPhase: string;
   inventory: Inventory;
   assignedClimbingTask: ClimbingTask | null;
-  eighthFloorFirstTaskCompleted: boolean;
   hasBoughtRestore: boolean;
   hasBoughtRiskDouble: boolean;
   riskDoubleActive: boolean;
