@@ -1,5 +1,6 @@
 import { buildRunTaskPools, loadTaskPacks, type TaskSource } from "./customTasks";
 import { create } from "zustand";
+import { canResolveTaskVariables } from "./taskVariables";
 import { getReplacementCandidates, MAX_TASK_REPLACEMENTS, replacePlannedTask } from "./taskReplacement";
 import {
   concretizeTask,
@@ -84,6 +85,8 @@ interface GameStore {
   assignClimbingTask: () => void;
   confirmClimbing: () => void;
   skipTask: () => Promise<void>;
+  skipUnavailableTask: () => void;
+  retryUnavailableTask: () => void;
   useRestoreVoucher: () => void;
   forfeitGame: () => Promise<void>;
   restartGame: () => void;
@@ -250,39 +253,51 @@ function generateNewTask(state: GameState): Partial<GameState> {
     };
   }
 
-  const planned = state.missionPlan?.floorTasks[floor];
+  const eligible = taskPool.filter(task => canResolveTaskVariables(task, state.clothing, state.owned));
+  const planned = (state.missionPlan?.floorTasks[floor] ?? []).filter(task => canResolveTaskVariables(task, state.clothing, state.owned));
   const assign = (task: NonNullable<GameState["currentTask"]>) =>
     concretizeTask(task, state.clothing, state.owned);
 
+  const selected = planned.slice(0, 2);
+  const used = new Set(selected.map(task => task.id));
+  if (selected.length < 2) selected.push(...pickFloorTaskOptions(eligible.filter(task => !used.has(task.id)), state.owned).slice(0, 2 - selected.length));
+  const taskChoices = selected.map(assign);
   return {
     currentTask: null,
-    taskChoices: (planned?.length ? planned : pickFloorTaskOptions(taskPool, state.owned)).map(assign),
-    taskMessage: null,
+    taskChoices,
+    unavailableTask: taskChoices.length ? null : "floor",
+    taskMessage: taskChoices.length ? null : "当前装备不满足任何楼层任务的变量条件，可以无奖励跳过本层任务。",
+    missionPlan: state.missionPlan ? { ...state.missionPlan, floorTasks: { ...state.missionPlan.floorTasks, [floor]: taskChoices } } : null,
   };
 }
 
 function applyClimbing(state: GameState): Pick<
   GameState,
-  "assignedClimbingTask" | "currentTask" | "taskMessage"
+  "assignedClimbingTask" | "currentTask" | "taskMessage" | "unavailableTask" | "missionPlan"
 > {
-  const availableTasks = (state.runTaskPools ?? getTasks(state.persona, state.mode))["上楼任务"];
+  const availableTasks = (state.runTaskPools ?? getTasks(state.persona, state.mode))["上楼任务"].filter(task => canResolveTaskVariables(task, state.clothing, state.owned));
   const planned = state.missionPlan
     ? getPlannedClimbingTask(state.missionPlan, state.currentFloor)
     : null;
   const selectedTask =
-    planned ?? availableTasks[Math.floor(Math.random() * availableTasks.length)];
+    planned && canResolveTaskVariables(planned, state.clothing, state.owned) ? planned : availableTasks[Math.floor(Math.random() * availableTasks.length)];
+  if (!selectedTask) return { assignedClimbingTask: null, currentTask: null, unavailableTask: "climb", missionPlan: state.missionPlan, taskMessage: "当前装备不满足任何上楼任务的变量条件，可以无奖励上楼。" };
+  const resolved = concretizeTask(selectedTask, state.clothing, state.owned);
   const targetFloor = getClimbingTargetMap(state.mode)[state.currentFloor];
   return {
     assignedClimbingTask: {
-      ...concretizeTask(selectedTask, state.clothing, state.owned),
+      ...resolved,
       targetFloor,
     },
     currentTask: null,
     taskMessage: null,
+    unavailableTask: null,
+    missionPlan: state.missionPlan ? { ...state.missionPlan, climbingTasks: { ...state.missionPlan.climbingTasks, [state.currentFloor]: resolved } } : null,
   };
 }
 
 function shouldAssignClimbing(state: GameState): boolean {
+  if (state.unavailableTask) return false;
   if (state.assignedClimbingTask || state.currentTask || state.taskChoices.length > 0) return false;
   if (state.gamePhase !== "adventure") return false;
   return getClimbingDecisionFloors(state.mode).includes(state.currentFloor);
@@ -674,7 +689,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (confirmRequest) return false;
     const candidates = getReplacementCandidates(state, taskId);
     if (candidates.length === 0) return false;
-    const task = pickRandomTask(candidates);
+    const task = concretizeTask(pickRandomTask(candidates), state.clothing, state.owned);
     const next: GameState = {
       ...state,
       taskChoices: state.taskChoices.map(choice => choice.id === taskId ? concretizeTask(task, state.clothing, state.owned) : choice),
@@ -768,6 +783,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   nextFloor: () => {
     const { state, confirmRequest } = get();
     if (confirmRequest) return;
+    if (state.unavailableTask) return;
     if (state.currentTask || state.assignedClimbingTask || state.taskChoices.length > 0) return;
     const nextFloorMap = getNextFloorMap(state.mode);
     const nextFloorValue = nextFloorMap[state.currentFloor];
@@ -828,6 +844,35 @@ export const useGameStore = create<GameStore>((set, get) => ({
     };
     persist(landed);
     set({ state: landed });
+  },
+
+  retryUnavailableTask: () => {
+    const { state, confirmRequest } = get();
+    if (confirmRequest || state.gamePhase !== "adventure" || !state.unavailableTask) return;
+    const next = { ...state, ...(state.unavailableTask === "floor" ? generateNewTask(state) : applyClimbing(state)) };
+    persist(next);
+    set({ state: next });
+  },
+
+  skipUnavailableTask: () => {
+    const { state, confirmRequest } = get();
+    if (confirmRequest || state.gamePhase !== "adventure" || !state.unavailableTask || state.currentTask || state.taskChoices.length || state.assignedClimbingTask) return;
+    const next: GameState = { ...state, unavailableTask: null, taskMessage: null, progressStepsCompleted: state.progressStepsCompleted + 1 };
+    if (state.unavailableTask === "floor") {
+      if (isFinalFloor(state)) {
+        set({ state: next });
+        get().endGame("当前装备无可用任务，已无奖励跳过最后一层任务。");
+        return;
+      }
+      Object.assign(next, applyClimbing(next));
+    } else {
+      const target = getClimbingTargetMap(state.mode)[state.currentFloor];
+      next.currentFloor = target;
+      next.maxFloor = Math.max(next.maxFloor, target);
+      Object.assign(next, generateNewTask(next));
+    }
+    persist(next);
+    set({ state: next });
   },
 
   skipTask: async () => {
@@ -955,6 +1000,7 @@ export function getGameControls(state: GameState) {
 
   if (
     state.gamePhase === "adventure" &&
+    !state.unavailableTask &&
     !state.currentTask &&
     !state.assignedClimbingTask
   ) {
@@ -978,7 +1024,7 @@ export function getActiveTaskDisplay(state: GameState) {
   if (state.assignedClimbingTask) {
     return {
       name: state.assignedClimbingTask.name,
-      description: resolveTaskDescription(
+      description: state.assignedClimbingTask.resolvedVariables ? state.assignedClimbingTask.description : resolveTaskDescription(
         state.assignedClimbingTask.description,
         state.clothing,
       ),
@@ -987,7 +1033,7 @@ export function getActiveTaskDisplay(state: GameState) {
   if (state.currentTask) {
     return {
       name: state.currentTask.name,
-      description: resolveTaskDescription(state.currentTask.description, state.clothing),
+      description: state.currentTask.resolvedVariables ? state.currentTask.description : resolveTaskDescription(state.currentTask.description, state.clothing),
     };
   }
   if (state.taskMessage) {
@@ -1002,7 +1048,7 @@ export function getTaskChoiceDisplays(state: GameState) {
     id: task.id,
     canRefresh: getReplacementCandidates(state, task.id).length > 0,
     name: task.name,
-    description: resolveTaskDescription(task.description, state.clothing),
+    description: task.resolvedVariables ? task.description : resolveTaskDescription(task.description, state.clothing),
     score: calculateTaskScore({ ...state, currentTask: task }),
     actions: wearActionItems(getWearAdvice(task, state.clothing, state.owned)).map(wearActionLabel),
   }));

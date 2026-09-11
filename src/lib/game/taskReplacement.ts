@@ -1,3 +1,4 @@
+import { canResolveTaskVariables } from "./taskVariables";
 import { getTaskNeeds, missingRequiredItems } from "./advisor";
 import { getTaskPoolForFloor } from "./constants";
 import type { GameState, Task } from "./types";
@@ -8,7 +9,7 @@ export function getReplacementCandidates(state: GameState, taskId: string): Task
   if (state.gamePhase !== "adventure" || state.currentTask || !state.taskChoices.some(task => task.id === taskId) ||
       state.assignedClimbingTask || state.taskReplacementsUsed >= MAX_TASK_REPLACEMENTS) return [];
   const pool = state.runTaskPools?.楼层任务 ?? getTaskPoolForFloor(state.currentFloor, state.mode, state.persona) ?? [];
-  const candidates = pool.filter((task) => !state.taskChoices.some(choice => choice.id === task.id) &&
+  const candidates = pool.filter((task) => canResolveTaskVariables(task, state.clothing, state.owned) && !state.taskChoices.some(choice => choice.id === task.id) &&
     !state.replacedTaskIds.includes(task.id) &&
     missingRequiredItems(getTaskNeeds(task), state.owned).length === 0);
   const plannedIds = new Set(state.missionPlan

@@ -1,3 +1,4 @@
+import { canResolveTaskVariables, resolveTaskVariables } from "./taskVariables";
 import type { TaskPools } from "./tasks/schema";
 import {
   CLOTHING_ITEMS,
@@ -305,12 +306,12 @@ export function generateMissionPlan(
 
   const floorTasks: Record<number, Task[]> = {};
   for (const floor of getTaskFloors(mode)) {
-    floorTasks[floor] = pickFloorTaskOptions(pools.楼层任务, owned, used);
+    floorTasks[floor] = pools.楼层任务.some(task => task.variables?.length) ? [] : pickFloorTaskOptions(pools.楼层任务, owned, used);
   }
 
   const climbingTasks: Record<number, Task> = {};
   for (const floor of getClimbingDecisionFloors(mode)) {
-    climbingTasks[floor] = pick(pools["上楼任务"], 1)[0];
+    if (!pools.上楼任务.some(task => task.variables?.length)) climbingTasks[floor] = pick(pools["上楼任务"], 1)[0];
   }
 
 
@@ -676,14 +677,16 @@ export function concretizeTask<T extends Task>(
   clothing: Record<ClothingItem, boolean>,
   owned: OwnedInventory,
 ): T {
+  if (task.variables?.length) return resolveTaskVariables(task, clothing, owned);
   return {
     ...task,
     description: concretizeDescription(task.id, task.description, clothing, owned),
   };
 }
 
-function pickOwnedFloorTask(owned: OwnedInventory, persona: Persona, mode: GameMode, snapshot?: TaskPools | null): Task {
-  const floorPool = (snapshot ?? getTasks(persona, mode)).楼层任务;
+function pickOwnedFloorTask(owned: OwnedInventory, persona: Persona, mode: GameMode, snapshot?: TaskPools | null, clothing?: GameState["clothing"]): Task | null {
+  const floorPool = (snapshot ?? getTasks(persona, mode)).楼层任务.filter(task => !clothing || canResolveTaskVariables(task, clothing, owned));
+  if (!floorPool.length) return null;
   const feasible = floorPool.filter(
     (task) => missingRequiredItems(getTaskNeeds(task), owned).length === 0,
   );
@@ -695,8 +698,10 @@ function pickOwnedFloorTask(owned: OwnedInventory, persona: Persona, mode: GameM
 export function resolveEnding(state: GameState): string {
   const persona = state.persona === "female" ? "female" : "male";
   if (state.mode === "normal" && state.score <= 0) {
-    const extra = concretizeTask(pickOwnedFloorTask(state.owned, persona, state.mode, state.runTaskPools), state.clothing, state.owned);
-    const desc = resolveTaskDescription(extra.description, state.clothing);
+    const selected = pickOwnedFloorTask(state.owned, persona, state.mode, state.runTaskPools, state.clothing);
+    if (!selected) return "当前装备没有可用的追加任务。\n" + getEnding(1, state.mode, persona);
+    const extra = concretizeTask(selected, state.clothing, state.owned);
+    const desc = extra.resolvedVariables ? extra.description : resolveTaskDescription(extra.description, state.clothing);
     const follow =
       getEndings("normal", persona).find((ending) => ending.minScore === 1)?.description ??
       (persona === "female"
@@ -894,7 +899,7 @@ export function normalizeMissionPlan(raw: unknown): MissionPlan | null {
     const floor = Number(key);
     if (!Number.isFinite(floor) || !Array.isArray(value)) continue;
     const list = value.filter(isTask);
-    if (list.length > 0) floorTasks[floor] = list;
+    floorTasks[floor] = list;
   }
   const climbingTasks: Record<number, Task> = {};
   for (const [key, value] of Object.entries(data.climbingTasks)) {
@@ -902,6 +907,5 @@ export function normalizeMissionPlan(raw: unknown): MissionPlan | null {
     if (!Number.isFinite(floor) || !isTask(value)) continue;
     climbingTasks[floor] = value;
   }
-  if (Object.keys(floorTasks).length === 0) return null;
   return { floorTasks, climbingTasks };
 }

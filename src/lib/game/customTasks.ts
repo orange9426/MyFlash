@@ -1,6 +1,7 @@
 import { selectTaskPools } from "./tasks";
+import { supportsWear } from "./taskVariables";
 import type { TaskPools } from "./tasks/schema";
-import type { ClothingItem, GameMode, Persona, Task, TaskNeeds, WearRole } from "./types";
+import type { ClothingItem, GameMode, Persona, Task, TaskNeeds, TaskVariable, WearRole } from "./types";
 
 export type TaskSource = "builtin" | "custom";
 export interface TaskPack {
@@ -85,6 +86,37 @@ function validateNeeds(value: unknown): Partial<TaskNeeds> {
   return result;
 }
 
+function validateVariables(value: unknown, title: string, description: string): TaskVariable[] | undefined {
+  if (value !== undefined && (!Array.isArray(value) || value.length > 10)) throw new Error("每项任务最多配置 10 个变量");
+  const keys = new Set<string>();
+  const variables = ((value ?? []) as unknown[]).map((entry): TaskVariable => {
+    const row = object(entry, "变量");
+    const key = string(row.key, "变量名", 30);
+    if (!/^[\p{L}_][\p{L}\p{N}_]*$/u.test(key) || ["__proto__", "constructor", "prototype"].includes(key)) throw new Error("变量名须以文字或下划线开头，仅含文字、数字和下划线");
+    if (keys.has(key)) throw new Error(`变量名重复：${key}`);
+    keys.add(key);
+    if (!Array.isArray(row.options) || !row.options.length || row.options.length > 50) throw new Error(`变量 ${key} 需要 1–50 个备选值`);
+    if (row.type === "text") {
+      const options = row.options.map(option => string(option, `变量 ${key} 备选词`, 200).trim());
+      if (options.some(option => /[{}]/.test(option))) throw new Error("备选词不能嵌套变量或包含花括号");
+      return { key, type: "text", options: [...new Set(options)] };
+    }
+    if (row.type !== "equipment") throw new Error("不支持的变量类型");
+    if (row.source !== "worn" && row.source !== "owned" && row.source !== "unworn") throw new Error(`变量 ${key} 的装备范围无效`);
+    const options = items(row.options, `变量 ${key}`);
+    if (row.wear !== undefined && (typeof row.wear !== "string" || !Object.hasOwn(WEAR_LABELS, row.wear))) throw new Error("变量穿戴状态无效");
+    const wear = row.wear as WearRole | undefined;
+    if (options.some(item => !supportsWear(item, wear))) throw new Error(`变量 ${key}：卷起仅适用于上衣，褪到膝盖仅适用于长裤或内裤`);
+    return { key, type: "equipment", options, source: row.source, ...(wear ? { wear } : {}) };
+  });
+  const text = title + "\n" + description;
+  const referenced = [...text.matchAll(/\{\{([^{}]+)\}\}/g)].map(match => match[1]);
+  for (const key of referenced) if (!keys.has(key)) throw new Error(`正文或标题引用了未配置的变量：${key}`);
+  if (/\{\{|\}\}/.test(text.replace(/\{\{([^{}]+)\}\}/g, ""))) throw new Error("变量标记不完整，请使用 {{变量名}}");
+  for (const key of keys) if (!referenced.includes(key)) throw new Error(`请在标题或正文插入 {{${key}}}`);
+  return variables.length ? variables : undefined;
+}
+
 export function validateTaskPack(value: unknown): TaskPack {
   const data = object(value, "任务包");
   if (data.format !== "myflash-task-pack" || data.version !== 1) throw new Error("不支持的任务包格式或版本（需要 myflash-task-pack v1）");
@@ -103,6 +135,7 @@ export function validateTaskPack(value: unknown): TaskPack {
       description: string(row.description, `任务 ${index + 1} 正文`, 4000),
       baseScore: number(row.baseScore, `任务 ${index + 1} 基础分`, 100),
       needs: validateNeeds(row.needs),
+      ...(row.variables !== undefined || /{{|}}/.test(`${row.name} ${row.description}`) ? { variables: validateVariables(row.variables, String(row.name), String(row.description)) } : {}),
       ...(row.urineBonus !== undefined ? { urineBonus: number(row.urineBonus, "额外积分", 3) } : {}),
     };
   });

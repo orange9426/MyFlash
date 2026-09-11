@@ -31,6 +31,8 @@ export function GameSection() {
   const assignClimbingTask = useGameStore((s) => s.assignClimbingTask);
   const confirmClimbing = useGameStore((s) => s.confirmClimbing);
   const skipTask = useGameStore((s) => s.skipTask);
+  const skipUnavailableTask = useGameStore((s) => s.skipUnavailableTask);
+  const retryUnavailableTask = useGameStore((s) => s.retryUnavailableTask);
   const replaceTask = useGameStore((s) => s.replaceTask);
   const restoreVoucher = useGameStore((s) => s.useRestoreVoucher);
   const forfeitGame = useGameStore((s) => s.forfeitGame);
@@ -108,6 +110,11 @@ export function GameSection() {
 
   return (
     <div className="space-y-6">
+      {state.unavailableTask && <div role="status" className="space-y-3 rounded-lg border p-4">
+        <p className="text-sm">{state.taskMessage}</p>
+        <Button disabled={hasConfirm} onClick={skipUnavailableTask}>{state.unavailableTask === "floor" ? "无奖励跳过本层任务" : "无奖励上楼"}</Button>
+        <Button variant="outline" className="ml-2" disabled={hasConfirm} onClick={retryUnavailableTask}>重新检查装备</Button>
+      </div>}
       <div className="flex items-end justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">

@@ -1,3 +1,4 @@
+import { TaskVariablesEditor } from "@/components/TaskVariablesEditor";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,7 @@ export function TaskEditorSection() {
         <div className="mt-3 space-y-3"><label className="block">标题<Input value={task.name} maxLength={80} onChange={e => updateTask(index, { ...task, name: e.target.value })} /></label>
           <label className="block">任务描述<textarea className={field} rows={4} maxLength={4000} value={task.description} onChange={e => updateTask(index, { ...task, description: e.target.value })} /></label>
           <label className="block">基础积分（0–100）<Input type="number" min={0} max={100} value={Number.isFinite(task.baseScore) ? task.baseScore : ""} onChange={e => updateTask(index, { ...task, baseScore: e.target.value === "" ? NaN : Number(e.target.value) })} /></label>
+          <TaskVariablesEditor task={task} onChange={next => updateTask(index, next)} />
           <NeedsEditor task={task} onChange={next => updateTask(index, next)} />
           <div className="flex gap-2"><Button variant="outline" disabled={draft.tasks.length >= 200} onClick={() => setDraft({ ...draft, tasks: [...draft.tasks, { ...structuredClone(task), id: customId(), name: `${task.name.slice(0, 75)} 副本` }] })}>复制任务</Button>
           <Button variant="destructive" onClick={async () => { if (await confirm("删除这个任务？保存任务包后生效。")) setDraft({ ...draft, tasks: draft.tasks.filter(t => t.id !== task.id) }); }}>删除任务</Button></div>

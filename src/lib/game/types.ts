@@ -63,11 +63,18 @@ export interface TaskNeeds {
   sound: boolean;
 }
 
+export type TaskVariable =
+  | { key: string; type: "text"; options: string[] }
+  | { key: string; type: "equipment"; options: ClothingItem[]; source: "worn" | "owned" | "unworn"; wear?: WearRole };
+
 export interface Task {
   id: string;
   name: string;
   description: string;
   baseScore: number;
+  variables?: TaskVariable[];
+  /** 当次抽取结果；任务包不保存此字段。 */
+  resolvedVariables?: Record<string, string>;
   /** 显式需求优先；省略时兼容从文本推断，空对象表示无要求。 */
   needs?: Partial<TaskNeeds>;
   /** 任务涉及排尿/标记时的额外加分 1–3 */
@@ -94,6 +101,7 @@ export interface GameState {
   routeVersion: number;
   taskSource: TaskSource;
   runTaskPools: TaskPools | null;
+  unavailableTask?: "floor" | "climb" | null;
   score: number;
   currentFloor: number;
   maxFloor: number;
