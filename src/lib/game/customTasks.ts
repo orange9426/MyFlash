@@ -34,6 +34,23 @@ export function customId(prefix = "custom"): string {
 export function newTask(): Task {
   return { id: customId(), name: "", description: "", baseScore: 2, needs: {} };
 }
+
+export function copyTaskAfter(tasks: Task[], id: string): Task[] {
+  const index = tasks.findIndex(task => task.id === id);
+  if (index < 0 || tasks.length >= 200) return tasks;
+  const copy = { ...structuredClone(tasks[index]), id: customId(), name: `${tasks[index].name.slice(0, 75)} 副本` };
+  return [...tasks.slice(0, index + 1), copy, ...tasks.slice(index + 1)];
+}
+
+export function moveEditorTask(tasks: Task[], id: string, targetId: string): Task[] {
+  const from = tasks.findIndex(task => task.id === id);
+  const to = tasks.findIndex(task => task.id === targetId);
+  if (from < 0 || to < 0 || from === to) return tasks;
+  const next = [...tasks];
+  const [task] = next.splice(from, 1);
+  next.splice(to, 0, task);
+  return next;
+}
 export function newTaskPack(): TaskPack {
   return { format: "myflash-task-pack", version: 1, id: customId("pack"), name: "我的任务包", persona: "male", mode: "normal", type: "floor", tasks: [] };
 }

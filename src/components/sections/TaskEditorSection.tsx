@@ -1,3 +1,5 @@
+import { TaskPreview } from "@/components/TaskPreview";
+import { ArrowUp, ArrowDown, GripVertical } from "lucide-react";
 import { TaskVariablesEditor } from "@/components/TaskVariablesEditor";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -6,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { getTasks } from "@/lib/game/constants";
 import { getTaskNeeds } from "@/lib/game/advisor";
 import { useGameStore } from "@/lib/game/store";
-import { customId, EDITOR_ITEMS, importTaskPack, loadTaskPacks, MAX_IMPORT_BYTES, NEED_FLAGS, newTask, newTaskPack, previewTaskPack, saveTaskPacks, taskPackError, WEAR_LABELS, type ImportPreview, type TaskPack } from "@/lib/game/customTasks";
+import { customId, EDITOR_ITEMS, importTaskPack, loadTaskPacks, MAX_IMPORT_BYTES, copyTaskAfter, moveEditorTask, newTask, newTaskPack, previewTaskPack, saveTaskPacks, taskPackError, WEAR_LABELS, type ImportPreview, type TaskPack } from "@/lib/game/customTasks";
 import type { Task, TaskNeeds, WearRole } from "@/lib/game/types";
 
 const field = "w-full rounded-md border bg-background p-2 text-sm";
@@ -19,6 +21,9 @@ export function TaskEditorSection() {
   });
   const [packs, setPacks] = useState<TaskPack[]>(loaded.packs);
   const [draft, setDraft] = useState<TaskPack | null>(null);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dropId, setDropId] = useState<string | null>(null);
+  const [orderNotice, setOrderNotice] = useState("");
   const [tab, setTab] = useState("custom");
   const [builtinKey, setBuiltinKey] = useState("male:normal:floor");
   const [preview, setPreview] = useState<ImportPreview | null>(null);
@@ -42,6 +47,12 @@ export function TaskEditorSection() {
   const updateTask = (index: number, task: Task) => {
     if (draft) setDraft({ ...draft, tasks: draft.tasks.map((value, i) => i === index ? task : value) });
   };
+  const moveTask = (id: string, targetId: string) => {
+    if (!draft) return;
+    const tasks = moveEditorTask(draft.tasks, id, targetId);
+    setDraft({ ...draft, tasks });
+    setOrderNotice("已移至第 " + (tasks.findIndex(task => task.id === id) + 1) + " 项，保存后生效");
+  };
   const exportPack = (pack: TaskPack) => {
     const url = URL.createObjectURL(new Blob([JSON.stringify(pack, null, 2)], { type: "application/json" }));
     const anchor = document.createElement("a"); anchor.href = url; anchor.download = "task-pack.json"; anchor.click();
@@ -60,14 +71,33 @@ export function TaskEditorSection() {
         <label>难度<select className={field} value={draft.mode} onChange={e => setDraft({ ...draft, mode: e.target.value as TaskPack["mode"] })}><option value="normal">普通</option><option value="hell">地狱</option></select></label>
         <label>任务类型<select className={field} value={draft.type} onChange={e => setDraft({ ...draft, type: e.target.value as TaskPack["type"] })}><option value="floor">楼层任务</option><option value="climb">上楼任务</option></select></label>
       </div>
-      {draft.tasks.map((task, index) => <details key={task.id} open={draft.tasks.length === 1 || undefined} className="rounded-lg border p-3">
-        <summary className="cursor-pointer font-medium">{index + 1}. {task.name || "未命名任务"} · {task.baseScore} 分</summary>
-        <div className="mt-3 space-y-3"><label className="block">标题<Input value={task.name} maxLength={80} onChange={e => updateTask(index, { ...task, name: e.target.value })} /></label>
+      <p className="text-xs text-muted-foreground">拖动任务左侧手柄排序，或使用上下箭头。复制会插入在原任务下方。</p>
+      <p role="status" className="sr-only">{orderNotice}</p>
+      {draft.tasks.map((task, index) => <details key={task.id} open={draft.tasks.length === 1 || undefined}
+        onDragOver={event => { if (draggedId && draggedId !== task.id) { event.preventDefault(); event.dataTransfer.dropEffect = "move"; setDropId(task.id); } }}
+        onDragLeave={event => { if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) setDropId(null); }}
+        onDrop={event => { event.preventDefault(); if (draggedId) moveTask(draggedId, task.id); setDraggedId(null); setDropId(null); }}
+        className={`rounded-lg border p-3 ${dropId === task.id ? "border-primary ring-1 ring-primary" : ""} ${draggedId === task.id ? "opacity-50" : ""}`}>
+        <summary className="cursor-pointer font-medium">
+          <span className="inline-flex w-[calc(100%-1.5rem)] items-center gap-2 align-middle">
+            <button type="button" draggable aria-label={`拖动第 ${index + 1} 项排序`} title="拖动排序"
+              className="cursor-grab rounded p-1 text-muted-foreground hover:bg-muted active:cursor-grabbing"
+              onClick={event => event.preventDefault()}
+              onDragStart={event => { event.dataTransfer.setData("text/plain", task.id); event.dataTransfer.effectAllowed = "move"; setDraggedId(task.id); }}
+              onDragEnd={() => { setDraggedId(null); setDropId(null); }}><GripVertical className="size-4" /></button>
+            <span className="min-w-0 flex-1 truncate">{index + 1}. {task.name || "未命名任务"} · {task.baseScore} 分</span>
+            <Button size="icon" variant="ghost" className="size-7 shrink-0" disabled={index === 0} aria-label={`上移第 ${index + 1} 项`}
+              onClick={event => { event.preventDefault(); moveTask(task.id, draft.tasks[index - 1].id); }}><ArrowUp className="size-3.5" /></Button>
+            <Button size="icon" variant="ghost" className="size-7 shrink-0" disabled={index === draft.tasks.length - 1} aria-label={`下移第 ${index + 1} 项`}
+              onClick={event => { event.preventDefault(); moveTask(task.id, draft.tasks[index + 1].id); }}><ArrowDown className="size-3.5" /></Button>
+          </span>
+        </summary>
+        <div className="mt-3 space-y-3"><div className="grid grid-cols-[minmax(0,1fr)_6rem] gap-3"><label className="block">标题<Input value={task.name} maxLength={80} onChange={e => updateTask(index, { ...task, name: e.target.value })} /></label><label className="block">基础积分<Input type="number" min={0} max={100} value={Number.isFinite(task.baseScore) ? task.baseScore : ""} onChange={e => updateTask(index, { ...task, baseScore: e.target.value === "" ? NaN : Number(e.target.value) })} /></label></div>
           <label className="block">任务描述<textarea className={field} rows={4} maxLength={4000} value={task.description} onChange={e => updateTask(index, { ...task, description: e.target.value })} /></label>
-          <label className="block">基础积分（0–100）<Input type="number" min={0} max={100} value={Number.isFinite(task.baseScore) ? task.baseScore : ""} onChange={e => updateTask(index, { ...task, baseScore: e.target.value === "" ? NaN : Number(e.target.value) })} /></label>
           <TaskVariablesEditor task={task} onChange={next => updateTask(index, next)} />
           <NeedsEditor task={task} onChange={next => updateTask(index, next)} />
-          <div className="flex gap-2"><Button variant="outline" disabled={draft.tasks.length >= 200} onClick={() => setDraft({ ...draft, tasks: [...draft.tasks, { ...structuredClone(task), id: customId(), name: `${task.name.slice(0, 75)} 副本` }] })}>复制任务</Button>
+          <TaskPreview task={task} />
+          <div className="flex gap-2"><Button variant="outline" disabled={draft.tasks.length >= 200} onClick={() => setDraft({ ...draft, tasks: copyTaskAfter(draft.tasks, task.id) })}>复制任务</Button>
           <Button variant="destructive" onClick={async () => { if (await confirm("删除这个任务？保存任务包后生效。")) setDraft({ ...draft, tasks: draft.tasks.filter(t => t.id !== task.id) }); }}>删除任务</Button></div>
         </div></details>)}
       <Button variant="outline" disabled={draft.tasks.length >= 200} onClick={() => setDraft({ ...draft, tasks: [...draft.tasks, newTask()] })}>新建任务</Button>
@@ -104,11 +134,7 @@ function NeedsEditor({ task, onChange }: { task: Task; onChange: (task: Task) =>
   const needs = task.needs ?? {};
   const change = (patch: Partial<TaskNeeds>) => onChange({ ...task, needs: { ...needs, ...patch } });
   return <details className="rounded-lg bg-muted/40 p-3"><summary className="cursor-pointer text-sm">装备需求与高级设置</summary><div className="mt-3 space-y-3 text-sm">
-    <p className="text-muted-foreground">未勾选表示没有对应要求。</p>
-    {(["requireAll", "recommend"] as const).map(key => <fieldset key={key}><legend>{key === "requireAll" ? "必须拥有" : "建议拥有"}</legend><div className="flex flex-wrap gap-3">{EDITOR_ITEMS.map(item => <label key={item}><input type="checkbox" checked={(needs[key] ?? []).includes(item)} onChange={e => change({ [key]: e.target.checked ? [...(needs[key] ?? []), item] : (needs[key] ?? []).filter(x => x !== item) })} /> {item}</label>)}</div></fieldset>)}
-    <fieldset><legend>任选装备（每组至少拥有一件）</legend>{(needs.requireAny ?? []).map((group, index) => <div key={index} className="my-2 flex flex-wrap items-center gap-2">{EDITOR_ITEMS.map(item => <label key={item}><input type="checkbox" checked={group.includes(item)} onChange={e => change({ requireAny: needs.requireAny!.map((g, i) => i !== index ? g : e.target.checked ? [...g, item] : g.filter(x => x !== item)) })} /> {item}</label>)}<Button size="sm" variant="outline" onClick={() => change({ requireAny: needs.requireAny!.filter((_, i) => i !== index) })}>移除组</Button></div>)}<Button size="sm" variant="outline" disabled={(needs.requireAny?.length ?? 0) >= 10} onClick={() => change({ requireAny: [...(needs.requireAny ?? []), []] })}>添加任选组</Button></fieldset>
-    <div className="grid gap-2 sm:grid-cols-2">{EDITOR_ITEMS.map(item => <label key={item}>{item}状态<select className={field} value={needs.wear?.[item] ?? ""} onChange={e => { const wear = { ...needs.wear }; if (e.target.value) Object.assign(wear, { [item]: e.target.value }); else delete wear[item]; change({ wear }); }}><option value="">不指定</option>{(Object.keys(WEAR_LABELS) as WearRole[]).filter(role => (role !== "rolled" || item === "上衣") && (role !== "faded" || item === "长裤" || item === "内裤")).map(role => <option key={role} value={role}>{WEAR_LABELS[role]}</option>)}</select></label>)}</div>
-    <div className="flex flex-wrap gap-3">{(Object.keys(NEED_FLAGS) as (keyof typeof NEED_FLAGS)[]).map(key => <label key={key}><input type="checkbox" checked={needs[key] ?? false} onChange={e => change({ [key]: e.target.checked })} /> {NEED_FLAGS[key]}</label>)}</div>
-    <label className="block">特殊事件额外积分（0–3）<Input type="number" min={0} max={3} value={task.urineBonus === undefined ? 0 : Number.isFinite(task.urineBonus) ? task.urineBonus : ""} onChange={e => onChange({ ...task, urineBonus: e.target.value === "" ? NaN : Number(e.target.value) })} /></label>
+    <fieldset><legend>必须拥有</legend><div className="flex flex-wrap gap-3">{EDITOR_ITEMS.map(item => <label key={item}><input type="checkbox" checked={(needs.requireAll ?? []).includes(item)} onChange={e => change({ requireAll: e.target.checked ? [...(needs.requireAll ?? []), item] : (needs.requireAll ?? []).filter(x => x !== item) })} /> {item}</label>)}</div></fieldset>
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{EDITOR_ITEMS.map(item => <label key={item}>{item}状态<select className={field} value={needs.wear?.[item] ?? ""} onChange={e => { const wear = { ...needs.wear }; if (e.target.value) Object.assign(wear, { [item]: e.target.value }); else delete wear[item]; change({ wear }); }}><option value="">不指定</option>{(Object.keys(WEAR_LABELS) as WearRole[]).filter(role => (role !== "rolled" || item === "上衣") && (role !== "faded" || item === "长裤" || item === "内裤")).map(role => <option key={role} value={role}>{WEAR_LABELS[role]}</option>)}</select></label>)}</div>
   </div></details>;
 }

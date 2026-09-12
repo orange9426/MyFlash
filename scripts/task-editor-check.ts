@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { buildRunTaskPools, importTaskPack, loadTaskPacks, newTask, newTaskPack, PACKS_KEY, previewTaskPack, saveTaskPacks, validateTaskPack } from '../src/lib/game/customTasks';
+import { copyTaskAfter, moveEditorTask, buildRunTaskPools, importTaskPack, loadTaskPacks, newTask, newTaskPack, PACKS_KEY, previewTaskPack, saveTaskPacks, validateTaskPack } from '../src/lib/game/customTasks';
 import { useGameStore } from '../src/lib/game/store';
 import { clearGameStateStorage } from '../src/lib/game/storage';
 import { getReplacementCandidates } from '../src/lib/game/taskReplacement';
@@ -82,3 +82,19 @@ assert.throws(() => useGameStore.getState().startGame(1, 'normal', undefined, 'm
 assert.equal(useGameStore.getState().state, savedState);
 localStorage.setItem = originalSetItem;
 console.log('任务编辑器回归检查通过：导入预览、校验、来源隔离、内置复制、快照/刷新/换任务/结算、独立存储、下一局生效。');
+
+const ordered = floor.tasks;
+const inserted = copyTaskAfter(ordered, ordered[0].id);
+assert.equal(inserted.length, ordered.length + 1);
+assert.equal(inserted[0].id, ordered[0].id);
+assert.notEqual(inserted[1].id, ordered[0].id);
+assert.equal(inserted[2].id, ordered[1].id);
+inserted[1].needs!.wear = { 上衣: 'off' };
+assert.deepEqual(ordered[0].needs, {});
+const movedDown = moveEditorTask(ordered, ordered[0].id, ordered[2].id);
+assert.deepEqual(movedDown.map(t => t.id), [ordered[1].id, ordered[2].id, ordered[0].id]);
+assert.deepEqual(moveEditorTask(movedDown, ordered[0].id, ordered[1].id), ordered);
+assert.equal(moveEditorTask(ordered, 'missing', ordered[0].id), ordered);
+saveTaskPacks([{ ...floor, tasks: movedDown }, climb]);
+assert.deepEqual(loadTaskPacks()[0].tasks.map(t => t.id), movedDown.map(t => t.id));
+console.log('复制就地插入、深复制、双向排序和保存顺序检查通过。');
