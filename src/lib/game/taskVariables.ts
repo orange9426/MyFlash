@@ -1,4 +1,4 @@
-import type { ClothingItem, OwnedInventory, Task, TaskVariable, TaskWear, WearRole } from './types';
+import type { ClothingItem, OwnedInventory, Task, TaskVariable, WearRole } from './types';
 
 type EquipmentVariable = Extract<TaskVariable, { type: 'equipment' }>;
 export const VARIABLE_SOURCE_LABELS = { worn: '当前穿着', owned: '拥有', unworn: '拥有但未穿着' } as const;
@@ -10,30 +10,29 @@ export function variableEquipmentOptions(variable: EquipmentVariable, clothing: 
     (variable.source === 'worn' ? clothing[item] : variable.source === 'owned' ? owned[item] : owned[item] && !clothing[item]));
 }
 
-// 同一件装备不能同时被变量要求处于不同状态；通过最多五件装备的状态组合查找可行解。
+// 按配置顺序选择，前面选中的装备从后续候选中移除。
+// 后续无解时回溯，避免随机选法导致本来可完成的任务被排除。
 function equipmentAssignments(task: Task, clothing: Record<ClothingItem, boolean>, owned: OwnedInventory, random: boolean): Record<string, string> | null {
   const variables = (task.variables ?? []).filter((v): v is EquipmentVariable => v.type === 'equipment');
   const failed = new Set<string>();
-  function visit(index: number, wear: TaskWear, values: Record<string, string>): Record<string, string> | null {
+  function visit(index: number, used: Set<ClothingItem>, values: Record<string, string>): Record<string, string> | null {
     if (index === variables.length) return values;
-    const signature = JSON.stringify([index, Object.entries(wear).sort()]);
+    const signature = JSON.stringify([index, [...used].sort()]);
     if (failed.has(signature)) return null;
     const variable = variables[index];
-    const options = variableEquipmentOptions(variable, clothing, owned);
+    const options = variableEquipmentOptions(variable, clothing, owned).filter(item => !used.has(item));
     if (random) for (let i = options.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [options[i], options[j]] = [options[j], options[i]];
     }
     for (const item of options) {
-      if (variable.wear && wear[item] && variable.wear !== wear[item]) continue;
-      const nextWear = variable.wear ? { ...wear, [item]: variable.wear } : wear;
-      const result = visit(index + 1, nextWear, { ...values, [variable.key]: item });
+      const result = visit(index + 1, new Set([...used, item]), { ...values, [variable.key]: item });
       if (result) return result;
     }
     failed.add(signature);
     return null;
   }
-  return visit(0, { ...task.needs?.wear }, {});
+  return visit(0, new Set(), {});
 }
 export function canResolveTaskVariables(task: Task, clothing: Record<ClothingItem, boolean>, owned: OwnedInventory): boolean {
   return !!task.resolvedVariables || equipmentAssignments(task, clothing, owned, false) !== null;

@@ -34,7 +34,8 @@ assert.throws(() => resolveTaskVariables(template, { ...clothing, 上衣: false 
 const rolled: Task = { ...template, variables: [{ ...equipment, options: ['上衣'], wear: 'rolled' }, template.variables![1]] };
 assert.ok(wearActionItems(getWearAdvice(concretizeTask(rolled, clothing, owned), clothing, owned)).map(wearActionLabel).some(text => text.includes('卷起')));
 const conflict: Task = { ...template, needs: { wear: { 上衣: 'on' } } };
-assert.equal(canResolveTaskVariables(conflict, clothing, owned), false);
+assert.equal(canResolveTaskVariables(conflict, clothing, owned), true);
+assert.equal(resolveTaskVariables(conflict, clothing, owned).needs!.wear!.上衣, 'off');
 const two: Task = { ...template, variables: [{ ...equipment, source: 'owned' }, { ...equipment, key: '另一件', source: 'owned', wear: 'on' }] };
 assert.equal(canResolveTaskVariables(two, clothing, owned), true);
 const pair = resolveTaskVariables(two, clothing, owned);
@@ -142,3 +143,40 @@ const shopPlan = structuredClone(useGameStore.getState().state.missionPlan);
 useGameStore.getState().hydrate();
 assert.deepEqual(useGameStore.getState().state.missionPlan, shopPlan);
 console.log('恢复装备重试与混合预抽计划刷新检查通过。');
+
+// 同一装备不能被多个变量重复使用，即使动作相同或未指定动作。
+const hintOnly: Task = { ...newTask(), name: '装备检查', description: '完成检查。', variables: [{ ...equipment, options: ['上衣'], wear: 'off' }] };
+const noRepeat: Task = { ...hintOnly, variables: [hintOnly.variables![0], { ...equipment, key: '第二件', options: ['上衣'], wear: 'off' }] };
+assert.equal(canResolveTaskVariables(noRepeat, clothing, owned), false);
+assert.throws(() => resolveTaskVariables(noRepeat, clothing, owned));
+assert.equal(canResolveTaskVariables({ ...noRepeat, variables: noRepeat.variables!.map(v => ({ ...v, wear: undefined })) }, clothing, owned), false);
+const hintPack = validateTaskPack({ ...newTaskPack(), tasks: [hintOnly] });
+assert.equal(previewTaskPack(JSON.stringify(hintPack)).errors.length, 0);
+const hintResult = concretizeTask(hintPack.tasks[0], clothing, owned);
+assert.equal(hintResult.description, hintOnly.description);
+assert.equal(hintResult.resolvedVariables!.装备, '上衣');
+assert.ok(wearActionItems(getWearAdvice(hintResult, clothing, owned)).map(wearActionLabel).includes('脱下上衣'));
+saveTaskPacks([hintPack]);
+assert.equal(JSON.parse(memory.get('myflashCustomPacksV1')!)[0].tasks[0].variables[0].key, '装备');
+const unusedText = { ...hintOnly, variables: [{ key: '文本', type: 'text', options: ['一'] }] };
+assert.throws(() => validateTaskPack({ ...newTaskPack(), tasks: [unusedText] }), /插入/);
+
+// 先选择第一变量，排除它的装备后再结算下一变量；不受固定穿戴状态限制。
+const sequential: Task = { ...hintOnly, needs: { wear: { 上衣: 'on', 长裤: 'off', 短袜: 'on' } }, variables: [
+  { ...equipment, key: '第一件', source: 'owned', options: ['上衣', '长裤'], wear: 'off' },
+  { ...equipment, key: '第二件', source: 'owned', options: ['上衣', '长裤'], wear: 'on' },
+] };
+const originalRandom = Math.random;
+try {
+  Math.random = () => 0.99;
+  const firstOrder = resolveTaskVariables(sequential, clothing, owned);
+  assert.deepEqual(firstOrder.resolvedVariables, { 第一件: '上衣', 第二件: '长裤' });
+  assert.deepEqual(firstOrder.needs!.wear, { 上衣: 'off', 长裤: 'on', 短袜: 'on' });
+  const reversed = resolveTaskVariables({ ...sequential, variables: [...sequential.variables!].reverse() }, clothing, owned);
+  assert.deepEqual(reversed.resolvedVariables, { 第二件: '上衣', 第一件: '长裤' });
+  const constrained: Task = { ...sequential, variables: [sequential.variables![0], { ...equipment, key: '第二件', source: 'owned', options: ['上衣'], wear: 'on' }] };
+  assert.equal(canResolveTaskVariables(constrained, clothing, owned), true);
+  assert.deepEqual(resolveTaskVariables(constrained, clothing, owned).resolvedVariables, { 第一件: '长裤', 第二件: '上衣' });
+  assert.deepEqual(concretizeTask(JSON.parse(JSON.stringify(firstOrder)), clothing, owned), firstOrder);
+} finally { Math.random = originalRandom; }
+console.log('顺序结算、装备全局去重、固定状态覆盖、仅提示变量与无解回溯检查通过。');

@@ -130,7 +130,7 @@ function validateVariables(value: unknown, title: string, description: string): 
   const referenced = [...text.matchAll(/\{\{([^{}]+)\}\}/g)].map(match => match[1]);
   for (const key of referenced) if (!keys.has(key)) throw new Error(`正文或标题引用了未配置的变量：${key}`);
   if (/\{\{|\}\}/.test(text.replace(/\{\{([^{}]+)\}\}/g, ""))) throw new Error("变量标记不完整，请使用 {{变量名}}");
-  for (const key of keys) if (!referenced.includes(key)) throw new Error(`请在标题或正文插入 {{${key}}}`);
+  for (const variable of variables) if (variable.type === "text" && !referenced.includes(variable.key)) throw new Error(`请在标题或正文插入 {{${variable.key}}}`);
   return variables.length ? variables : undefined;
 }
 

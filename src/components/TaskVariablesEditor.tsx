@@ -15,7 +15,7 @@ export function TaskVariablesEditor({ task, onChange }: { task: Task; onChange: 
     while (variables.some(v => v.key === '变量' + index) || (task.name + task.description).includes('{{变量' + index + '}}')) index++;
     const key = '变量' + index;
     const variable: TaskVariable = type === 'text' ? { key, type, options: ['选项一', '选项二'] } : { key, type, options: [], source: 'worn', wear: 'off' };
-    onChange({ ...task, variables: [...variables, variable], description: task.description + '{{' + key + '}}' });
+    onChange({ ...task, variables: [...variables, variable], description: type === 'text' ? task.description + '{{' + key + '}}' : task.description });
   };
   const copy = async (key: string) => {
     try { await navigator.clipboard.writeText("{{" + key + "}}"); toast.success("已复制变量标记"); }
@@ -24,6 +24,7 @@ export function TaskVariablesEditor({ task, onChange }: { task: Task; onChange: 
   return <section className="space-y-2 rounded-lg border p-3">
     <h3 className="text-sm font-medium">随机变量</h3>
     <p className="text-xs text-muted-foreground">复制标记后粘贴到标题或正文，同一标记使用同一结果。</p>
+    <p className="text-xs text-muted-foreground">装备变量按列表顺序结算，彼此不重复；变量状态覆盖任务原有状态，也可不插入正文、仅生成提示。</p>
     <div className="flex flex-wrap gap-2"><Button size="sm" variant="outline" disabled={variables.length >= 10} onClick={() => add('text')}>添加文本变量</Button><Button size="sm" variant="outline" disabled={variables.length >= 10} onClick={() => add('equipment')}>添加装备变量</Button></div>
     {variables.map((variable, index) => <div key={variable.key} className="space-y-2 rounded-md bg-muted/40 p-2.5">
       <div className="flex flex-wrap items-center gap-2 text-xs"><span>{variable.type === 'text' ? '文本' : '装备'}</span><code className="select-all rounded border px-1.5 py-1">{'{{' + variable.key + '}}'}</code><Button size="sm" variant="ghost" onClick={() => copy(variable.key)}>复制</Button><Button size="sm" variant="ghost" onClick={() => onChange({ ...task, variables: variables.filter((_, i) => i !== index) })}>移除</Button></div>
@@ -36,4 +37,3 @@ export function TaskVariablesEditor({ task, onChange }: { task: Task; onChange: 
     </div>)}
   </section>;
 }
-
