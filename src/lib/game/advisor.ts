@@ -506,7 +506,6 @@ export function wearActionItems(advice: WearAdvice | null): WearInstruction[] {
 }
 
 export function wearActionLabel(item: WearInstruction): string {
-  if (item.verb === "褪到膝盖") return `${item.item}褪到膝盖`;
   if (item.tone === "missing") return item.verb;
   if (item.verb === "脱下" || item.verb === "穿上" || item.verb === "保持穿着" || item.verb === "保持不穿") {
     return `${item.verb}${item.item}`;
@@ -677,6 +676,7 @@ export function concretizeTask<T extends Task>(
   clothing: Record<ClothingItem, boolean>,
   owned: OwnedInventory,
 ): T {
+  if (task.floorEvents) return task;
   if (task.variables?.length) return resolveTaskVariables(task, clothing, owned);
   return {
     ...task,
@@ -715,10 +715,10 @@ export function resolveEnding(state: GameState): string {
 const ROLE_VERB: Record<WearRole, { on: string; off: string; keepOn: string; keepOff: string }> = {
   on: { on: "穿上", off: "保持不穿", keepOn: "保持穿着", keepOff: "穿上" },
   off: { on: "脱下", off: "保持不穿", keepOn: "脱下", keepOff: "保持不穿" },
-  mouth: { on: "脱下叼在嘴里", off: "拿出叼在嘴里", keepOn: "脱下叼在嘴里", keepOff: "拿出叼在嘴里" },
+  mouth: { on: "脱下塞进嘴里", off: "拿出塞进嘴里", keepOn: "脱下塞进嘴里", keepOff: "拿出塞进嘴里" },
   neck: { on: "脱下挂在脖子上", off: "拿出挂在脖子上", keepOn: "脱下挂在脖子上", keepOff: "拿出挂在脖子上" },
   wrap: { on: "脱下作为道具", off: "拿出作为道具", keepOn: "脱下作为道具", keepOff: "拿出作为道具" },
-  rolled: { on: "卷起到腋下", off: "没有上衣可跳过", keepOn: "上衣卷起到腋下", keepOff: "没有上衣可跳过" },
+  rolled: { on: "卷起到腋下", off: "没有上衣可跳过", keepOn: "卷起到腋下", keepOff: "没有上衣可跳过" },
   faded: { on: "褪到膝盖", off: "未穿可跳过", keepOn: "褪到膝盖", keepOff: "未穿可跳过" },
 };
 

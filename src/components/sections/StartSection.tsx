@@ -69,7 +69,7 @@ export function StartSection() {
             <ChoiceCard
               selected={mode === "normal"}
               title="普通模式"
-              hint="6 层 · 每层任务二选一"
+              hint="6 层 · 每层任务选一"
               onClick={() => setMode("normal")}
             />
             <ChoiceCard

@@ -7,6 +7,8 @@ import { useGameStore, getGameControls, getTaskChoiceDisplays } from '../src/lib
 import { getReplacementCandidates } from '../src/lib/game/taskReplacement';
 import type { Task, TaskVariable } from '../src/lib/game/types';
 
+// 本套检查固定关闭楼层事件；事件组合另有独立回归检查。
+Math.random = () => 0.99;
 const memory = new Map<string, string>();
 Object.defineProperty(globalThis, 'localStorage', { value: {
   getItem: (key: string) => memory.get(key) ?? null,

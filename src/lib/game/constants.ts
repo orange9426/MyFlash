@@ -367,7 +367,9 @@ export function calculateTaskScore(state: GameState): number {
     clothingBonus = Math.floor(clothingBonus * 1.5);
   }
   const urineBonus = state.currentTask.urineBonus ?? 0;
-  return baseScore + clothingBonus + urineBonus;
+  const events = state.currentTask.floorEvents;
+  const eventBonus = (events?.extraRemoval ? 1 : 0) + (events?.doubledNumbers ? 2 : 0) - (events?.reducedScore ? 1 : 0);
+  return baseScore + clothingBonus + urineBonus + eventBonus;
 }
 
 export function getWornClothingCount(state: GameState): number {

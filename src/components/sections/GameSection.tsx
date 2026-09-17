@@ -105,7 +105,7 @@ export function GameSection() {
       toast.success(`已花费${keepCost}分保留`);
       return;
     }
-    toast.success(`+${scoreGained}`);
+    toast.success(`${scoreGained >= 0 ? "+" : ""}${scoreGained}`);
   };
 
   return (
@@ -175,15 +175,16 @@ export function GameSection() {
         <section className="space-y-3" aria-label="选择本层任务">
           <h2 className="text-lg font-semibold">选择本层任务</h2>
           <p className="text-sm text-muted-foreground">
-            {choices.length === 2 ? "二选一，选定后完成其中一项即可完成本层。" : "当前任务池仅有一个可用任务。"}
+            {choices.length > 1 ? `${choices.length} 选一，完成其中一项即可完成本层。` : "当前任务池仅有一个可用任务。"}
           </p>
-          <p className="text-xs text-muted-foreground">本局免费刷新剩 {replacementsLeft} 次，两张卡共用；确认后不可刷新。</p>
+          <p className="text-xs text-muted-foreground">本局免费刷新剩 {replacementsLeft} 次，所有选项共用；确认后不可刷新。</p>
           {choices.map((choice, index) => (
             <div key={choice.id} className="space-y-3 rounded-xl border bg-card p-4">
               <div className="flex items-start justify-between gap-3">
                 <h3 className="font-semibold">{index + 1}. {choice.name}</h3>
-                <span className="shrink-0 text-sm tabular-nums">+{choice.score} 分</span>
+                <span className="shrink-0 text-sm tabular-nums">{choice.score >= 0 ? "+" : ""}{choice.score} 分</span>
               </div>
+              {choice.eventNotes.length > 0 && <p className="text-xs text-muted-foreground">{choice.eventNotes.join(" · ")}</p>}
               {choice.actions.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {choice.actions.map((label, i) => <span key={i} className="rounded-full border px-2 py-1 text-sm">{label}</span>)}
@@ -233,7 +234,7 @@ export function GameSection() {
                 disabled={hasConfirm}
                 onClick={handleComplete}
               >
-                完成（+{scorePreview}分）
+                完成（{scorePreview >= 0 ? "+" : ""}{scorePreview}分）
               </Button>
             )}
             {controls.showNextFloor && (

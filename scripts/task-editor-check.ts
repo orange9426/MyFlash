@@ -6,6 +6,8 @@ import { getReplacementCandidates } from '../src/lib/game/taskReplacement';
 import { resolveEnding, getTaskNeeds } from '../src/lib/game/advisor';
 import { getTasks } from '../src/lib/game/constants';
 
+// 本套检查固定关闭楼层事件；事件组合另有独立回归检查。
+Math.random = () => 0.99;
 const memory = new Map<string, string>();
 Object.defineProperty(globalThis, 'localStorage', { value: {
   getItem: (key: string) => memory.get(key) ?? null,

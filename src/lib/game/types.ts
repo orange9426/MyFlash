@@ -75,6 +75,13 @@ export interface Task {
   variables?: TaskVariable[];
   /** 当次抽取结果；任务包不保存此字段。 */
   resolvedVariables?: Record<string, string>;
+  /** 本层选项事件，生成后随当局存档锁定。 */
+  floorEvents?: {
+    hidden?: boolean;
+    extraRemoval?: ClothingItem;
+    doubledNumbers?: boolean;
+    reducedScore?: boolean;
+  };
   /** 显式需求优先；省略时兼容从文本推断，空对象表示无要求。 */
   needs?: Partial<TaskNeeds>;
   /** 任务涉及排尿/标记时的额外加分 1–3 */

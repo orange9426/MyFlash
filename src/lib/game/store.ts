@@ -1,3 +1,4 @@
+import { applyFloorEvents, inheritFloorEvents } from "./floorEvents";
 import { buildRunTaskPools, loadTaskPacks, type TaskSource } from "./customTasks";
 import { create } from "zustand";
 import { canResolveTaskVariables } from "./taskVariables";
@@ -188,7 +189,7 @@ function normalizeLoadedState(raw: unknown): GameState {
         : null,
     taskMessage: typeof data.taskMessage === "string" ? data.taskMessage : null,
     taskChoices: !data.currentTask && !data.assignedClimbingTask && Array.isArray(data.taskChoices)
-      ? data.taskChoices.filter(task => task && typeof task.id === "string" && typeof task.description === "string").slice(0, 2)
+      ? data.taskChoices.filter(task => task && typeof task.id === "string" && typeof task.description === "string").slice(0, 3)
       : [],
     progressStepsCompleted: normalizedProgress,
     gamePhase: (["initial", "shop", "adventure", "ended"] as const).includes(inferredPhase as GameState["gamePhase"])
@@ -261,7 +262,11 @@ function generateNewTask(state: GameState): Partial<GameState> {
   const selected = planned.slice(0, 2);
   const used = new Set(selected.map(task => task.id));
   if (selected.length < 2) selected.push(...pickFloorTaskOptions(eligible.filter(task => !used.has(task.id)), state.owned).slice(0, 2 - selected.length));
-  const taskChoices = selected.map(assign);
+  const taskChoices = planned.length && planned.every(task => task.floorEvents) ? planned.slice(0, 3) : applyFloorEvents(selected.map(assign), state, () => {
+    const remaining = eligible.filter(task => !used.has(task.id) && !selected.some(choice => choice.id === task.id));
+    const extra = pickFloorTaskOptions(remaining, state.owned)[0];
+    return extra ? assign(extra) : null;
+  });
   return {
     currentTask: null,
     taskChoices,
@@ -689,7 +694,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (confirmRequest) return false;
     const candidates = getReplacementCandidates(state, taskId);
     if (candidates.length === 0) return false;
-    const task = concretizeTask(pickRandomTask(candidates), state.clothing, state.owned);
+    const previous = state.taskChoices.find(task => task.id === taskId)!;
+    const task = inheritFloorEvents(concretizeTask(pickRandomTask(candidates), state.clothing, state.owned), previous, state);
     const next: GameState = {
       ...state,
       taskChoices: state.taskChoices.map(choice => choice.id === taskId ? concretizeTask(task, state.clothing, state.owned) : choice),
@@ -1033,7 +1039,7 @@ export function getActiveTaskDisplay(state: GameState) {
   if (state.currentTask) {
     return {
       name: state.currentTask.name,
-      description: state.currentTask.resolvedVariables ? state.currentTask.description : resolveTaskDescription(state.currentTask.description, state.clothing),
+      description: (state.currentTask.resolvedVariables || state.currentTask.floorEvents) ? state.currentTask.description : resolveTaskDescription(state.currentTask.description, state.clothing),
     };
   }
   if (state.taskMessage) {
@@ -1047,10 +1053,15 @@ export function getTaskChoiceDisplays(state: GameState) {
   return state.taskChoices.map(task => ({
     id: task.id,
     canRefresh: getReplacementCandidates(state, task.id).length > 0,
-    name: task.name,
-    description: task.resolvedVariables ? task.description : resolveTaskDescription(task.description, state.clothing),
+    name: task.floorEvents?.hidden ? "隐藏任务" : task.name,
+    description: task.floorEvents?.hidden ? "确认选择后揭晓任务内容。" : task.resolvedVariables || task.floorEvents ? task.description : resolveTaskDescription(task.description, state.clothing),
     score: calculateTaskScore({ ...state, currentTask: task }),
-    actions: wearActionItems(getWearAdvice(task, state.clothing, state.owned)).map(wearActionLabel),
+    actions: task.floorEvents?.hidden ? [] : wearActionItems(getWearAdvice(task, state.clothing, state.owned)).map(wearActionLabel),
+    eventNotes: task.floorEvents?.hidden ? [] : [
+      ...(task.floorEvents?.extraRemoval ? ["额外脱装备 +1 分"] : []),
+      ...(task.floorEvents?.doubledNumbers ? ["数字翻倍 +2 分"] : []),
+      ...(task.floorEvents?.reducedScore ? ["选项扩充 −1 分"] : []),
+    ],
   }));
 }
 

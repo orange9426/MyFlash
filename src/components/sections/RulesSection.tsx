@@ -8,8 +8,8 @@ import { useGameStore } from "@/lib/game/store";
 
 const FLOW_NORMAL = [
   "从当前角色和难度的楼层任务池抽取",
-  "每层提供两个不同任务，任选其一",
-  "选定后完成或跳过；另一项不计分、不推进进度",
+  "每层通常提供两个不同任务，事件可能增加第三项",
+  "任选一项完成或跳过；其余选项不计分、不推进进度",
   "每完成一层任务，上 1 层；共 5 次上楼",
   "完成或跳过第 6 层任务后结算",
 ];
@@ -92,6 +92,14 @@ export function RulesSection() {
                   </li>
                 ))}
               </ol>
+              <SectionTitle>楼层随机事件</SectionTitle>
+              <p className="text-xs text-muted-foreground">每层四项概率独立判定，可同时发生；确认选择后揭晓隐藏内容。</p>
+              <ul className="space-y-1 text-sm text-muted-foreground">
+                <li>60%：一个选项隐藏内容，仅显示分值。</li>
+                <li>40%：一个选项额外脱下一件穿着且未被任务指定的装备，+1 分；无符合装备则不发生。</li>
+                <li>20%：一个选项描述中的阿拉伯数字翻倍，+2 分；无数字则不发生。</li>
+                <li>30%：增加一个不同选项，再随机选两个选项各 −1 分；没有额外可用任务则不发生。</li>
+              </ul>
             </TabsContent>
 
             <TabsContent value="score" className="mt-5 space-y-3">
